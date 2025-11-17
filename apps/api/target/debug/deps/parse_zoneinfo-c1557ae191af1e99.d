@@ -1,0 +1,11 @@
+/home/keenan/work/school/dev_academy/ui/apps/api/target/debug/deps/parse_zoneinfo-c1557ae191af1e99.d: /home/keenan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/parse-zoneinfo-0.3.1/src/lib.rs /home/keenan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/parse-zoneinfo-0.3.1/src/line.rs /home/keenan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/parse-zoneinfo-0.3.1/src/structure.rs /home/keenan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/parse-zoneinfo-0.3.1/src/table.rs /home/keenan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/parse-zoneinfo-0.3.1/src/transitions.rs
+
+/home/keenan/work/school/dev_academy/ui/apps/api/target/debug/deps/libparse_zoneinfo-c1557ae191af1e99.rlib: /home/keenan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/parse-zoneinfo-0.3.1/src/lib.rs /home/keenan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/parse-zoneinfo-0.3.1/src/line.rs /home/keenan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/parse-zoneinfo-0.3.1/src/structure.rs /home/keenan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/parse-zoneinfo-0.3.1/src/table.rs /home/keenan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/parse-zoneinfo-0.3.1/src/transitions.rs
+
+/home/keenan/work/school/dev_academy/ui/apps/api/target/debug/deps/libparse_zoneinfo-c1557ae191af1e99.rmeta: /home/keenan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/parse-zoneinfo-0.3.1/src/lib.rs /home/keenan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/parse-zoneinfo-0.3.1/src/line.rs /home/keenan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/parse-zoneinfo-0.3.1/src/structure.rs /home/keenan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/parse-zoneinfo-0.3.1/src/table.rs /home/keenan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/parse-zoneinfo-0.3.1/src/transitions.rs
+
+/home/keenan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/parse-zoneinfo-0.3.1/src/lib.rs:
+/home/keenan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/parse-zoneinfo-0.3.1/src/line.rs:
+/home/keenan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/parse-zoneinfo-0.3.1/src/structure.rs:
+/home/keenan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/parse-zoneinfo-0.3.1/src/table.rs:
+/home/keenan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/parse-zoneinfo-0.3.1/src/transitions.rs:
