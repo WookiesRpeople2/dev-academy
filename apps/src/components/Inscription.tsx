@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { UserPlus, Mail, Lock, User, Phone, Check } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { UserPlus, Mail, Lock, User, Phone, Check, KeyRound } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
@@ -7,6 +8,7 @@ import { Checkbox } from './ui/checkbox';
 import { toast } from 'sonner';
 
 export function Inscription() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -20,7 +22,7 @@ export function Inscription() {
 
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (formData.password !== formData.confirmPassword) {
@@ -33,8 +35,96 @@ export function Inscription() {
       return;
     }
 
+    const users = JSON.parse(localStorage.getItem('users') || '{}');
+    if (users[formData.email]) {
+      toast.error('Un compte existe déjà avec cet email');
+      return;
+    }
+    const enc = new TextEncoder().encode(formData.password);
+    const buf = await crypto.subtle.digest('SHA-256', enc);
+    const arr = Array.from(new Uint8Array(buf));
+    const passwordHash = arr.map((b) => b.toString(16).padStart(2, '0')).join('');
+    users[formData.email] = {
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      email: formData.email,
+      passwordHash,
+    };
+    localStorage.setItem('users', JSON.stringify(users));
     setSubmitted(true);
     toast.success('Inscription réussie! Bienvenue sur DevAcademy 🎉');
+  };
+
+  const emitAuthChanged = () => window.dispatchEvent(new Event('auth-changed'));
+  const SECRET = 'devacademy-demo-secret';
+  async function issueToken(subject: string) {
+    const payload = {
+      sub: subject,
+      iat: Math.floor(Date.now() / 1000),
+      exp: Math.floor(Date.now() / 1000) + 24 * 60 * 60,
+    };
+    const payloadStr = JSON.stringify(payload);
+    const data = new TextEncoder().encode(payloadStr + SECRET);
+    const digest = await crypto.subtle.digest('SHA-256', data);
+    const arr = Array.from(new Uint8Array(digest));
+    const sig = arr.map((b) => b.toString(16).padStart(2, '0')).join('');
+    localStorage.setItem('tokenPayload', payloadStr);
+    localStorage.setItem('tokenSig', sig);
+    localStorage.setItem('tokenExp', String(payload.exp));
+    localStorage.setItem('auth', 'true');
+    emitAuthChanged();
+  }
+  const loginWithPasskey = async () => {
+    try {
+      if (!('PublicKeyCredential' in window)) {
+        await issueToken('guest');
+        navigate('/programmes', { replace: true });
+        return;
+      }
+      const challenge = new Uint8Array(32);
+      crypto.getRandomValues(challenge);
+      const cred = await navigator.credentials.get({
+        publicKey: {
+          challenge,
+          rpId: window.location.hostname,
+          allowCredentials: [],
+          userVerification: 'preferred',
+        },
+        mediation: 'optional',
+      } as any);
+      if (cred) await issueToken('passkey-user'); else await issueToken('guest');
+      navigate('/programmes', { replace: true });
+    } catch {
+      await issueToken('guest');
+      navigate('/programmes', { replace: true });
+    }
+  };
+  const createPasskey = async () => {
+    try {
+      if (!('PublicKeyCredential' in window)) {
+        await issueToken('guest');
+        navigate('/programmes', { replace: true });
+        return;
+      }
+      const challenge = new Uint8Array(32);
+      crypto.getRandomValues(challenge);
+      const userId = new Uint8Array(16);
+      crypto.getRandomValues(userId);
+      const cred = await navigator.credentials.create({
+        publicKey: {
+          challenge,
+          rp: { name: 'DevAcademy', id: window.location.hostname },
+          user: { id: userId, name: 'user', displayName: 'Utilisateur' },
+          pubKeyCredParams: [{ type: 'public-key', alg: -7 }],
+          authenticatorSelection: { residentKey: 'preferred' },
+        },
+      } as any);
+      if (cred) await issueToken('passkey-user'); else await issueToken('guest');
+      navigate('/programmes', { replace: true });
+    } catch {
+      await issueToken('guest');
+      navigate('/programmes', { replace: true });
+    }
   };
 
   if (submitted) {
@@ -236,9 +326,15 @@ export function Inscription() {
               S'inscrire
             </Button>
 
+            <div className="space-y-3 pt-2">
+              <Button onClick={createPasskey} variant="outline" className="w-full">
+                <KeyRound className="mr-2 h-4 w-4" /> Créer une Passkey
+              </Button>
+            </div>
+
             <p className="text-center text-sm text-zinc-500">
               Déjà un compte?{' '}
-              <button type="button" className="text-blue-400 hover:text-blue-300 hover:underline">
+              <button type="button" onClick={() => navigate('/connexion')} className="text-blue-400 hover:text-blue-300 hover:underline">
                 Se connecter
               </button>
             </p>

@@ -1,9 +1,26 @@
-import { Code2, Menu, X } from 'lucide-react';
-import { useState } from 'react';
-import { Link, NavLink } from 'react-router-dom';
+import { Code2, Menu, X, LogIn, LogOut } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { Button } from './ui/button';
 
 export function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const [isAuthenticated, setIsAuthenticated] = useState(localStorage.getItem('auth') === 'true');
+  useEffect(() => {
+    const onAuthChanged = () => setIsAuthenticated(localStorage.getItem('auth') === 'true');
+    window.addEventListener('auth-changed', onAuthChanged as EventListener);
+    window.addEventListener('storage', onAuthChanged as EventListener);
+    return () => {
+      window.removeEventListener('auth-changed', onAuthChanged as EventListener);
+      window.removeEventListener('storage', onAuthChanged as EventListener);
+    };
+  }, []);
+  const logout = () => {
+    localStorage.setItem('auth', 'false');
+    localStorage.removeItem('currentUser');
+    window.dispatchEvent(new Event('auth-changed'));
+  };
 
   const navItems = [
     { path: '/', label: 'Accueil' },
@@ -51,6 +68,15 @@ export function Navigation() {
                 {item.label}
               </NavLink>
             ))}
+            {isAuthenticated ? (
+              <Button onClick={logout} className="ml-2" variant="outline">
+                <LogOut className="mr-2 h-4 w-4" /> Se déconnecter
+              </Button>
+            ) : (
+              <Button onClick={() => navigate('/connexion')} className="ml-2">
+                <LogIn className="mr-2 h-4 w-4" /> Se connecter
+              </Button>
+            )}
           </div>
 
           <button
@@ -73,9 +99,20 @@ export function Navigation() {
                 {item.label}
               </NavLink>
             ))}
+            <div className="mt-2 flex gap-2">
+              {isAuthenticated ? (
+                <Button onClick={logout} variant="outline" className="flex-1">
+                  <LogOut className="mr-2 h-4 w-4" /> Se déconnecter
+                </Button>
+              ) : (
+                <Button onClick={() => { setMobileMenuOpen(false); navigate('/connexion'); }} className="flex-1">
+                  <LogIn className="mr-2 h-4 w-4" /> Se connecter
+                </Button>
+              )}
+            </div>
           </div>
         )}
       </div>
-    </nav>
+      </nav>
   );
 }
