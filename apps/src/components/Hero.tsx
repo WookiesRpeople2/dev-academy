@@ -8,7 +8,6 @@ interface HeroProps {
 export function Hero({ onGetStarted }: HeroProps) {
   return (
     <div className="relative overflow-hidden">
-      {/* Background gradient */}
       <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-violet-500/10 to-pink-500/10" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/20 via-zinc-950 to-zinc-950" />
       

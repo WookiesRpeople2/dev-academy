@@ -1,57 +1,57 @@
 import { Code2, Menu, X } from 'lucide-react';
 import { useState } from 'react';
-import type { Page } from '../App';
+import { Link, NavLink } from 'react-router-dom';
 
-interface NavigationProps {
-  currentPage: Page;
-  onNavigate: (page: Page) => void;
-}
-
-export function Navigation({ currentPage, onNavigate }: NavigationProps) {
+export function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navItems = [
-    { id: 'home' as Page, label: 'Accueil' },
-    { id: 'programmes' as Page, label: 'Programmes' },
-    { id: 'inscription' as Page, label: 'Inscription' },
-    { id: 'documents' as Page, label: 'Documents' },
-    { id: 'contact' as Page, label: 'Contact' },
+    { path: '/', label: 'Accueil' },
+    { path: '/programmes', label: 'Programmes' },
+    { path: '/contact', label: 'Contact' },
   ];
 
-  const handleNavigate = (page: Page) => {
-    onNavigate(page);
-    setMobileMenuOpen(false);
-  };
+  const getLinkClass = ({ isActive }: { isActive: boolean }) => 
+    `px-4 py-2 rounded-lg transition-colors ${
+      isActive
+        ? 'bg-zinc-800 text-zinc-50'
+        : 'text-zinc-400 hover:text-zinc-50 hover:bg-zinc-900'
+    }`;
+
+  const getMobileLinkClass = ({ isActive }: { isActive: boolean }) =>
+    `block w-full px-4 py-3 text-left rounded-lg transition-colors ${
+      isActive
+        ? 'bg-zinc-800 text-zinc-50'
+        : 'text-zinc-400 hover:text-zinc-50 hover:bg-zinc-900'
+    }`;
 
   return (
     <nav className="sticky top-0 z-50 border-b border-zinc-800 bg-zinc-950/80 backdrop-blur-xl">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => handleNavigate('home')}>
+          <Link 
+            to="/" 
+            className="flex items-center gap-2 cursor-pointer"
+            onClick={() => setMobileMenuOpen(false)}
+          >
             <div className="rounded-lg bg-gradient-to-br from-blue-500 to-violet-600 p-2">
               <Code2 className="h-6 w-6" />
             </div>
             <span className="font-mono">DevAcademy</span>
-          </div>
+          </Link>
 
-          {/* Desktop Navigation */}
           <div className="hidden md:flex md:items-center md:gap-1">
             {navItems.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => handleNavigate(item.id)}
-                className={`px-4 py-2 rounded-lg transition-colors ${
-                  currentPage === item.id
-                    ? 'bg-zinc-800 text-zinc-50'
-                    : 'text-zinc-400 hover:text-zinc-50 hover:bg-zinc-900'
-                }`}
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={getLinkClass}
               >
                 {item.label}
-              </button>
+              </NavLink>
             ))}
           </div>
 
-          {/* Mobile Menu Button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="md:hidden rounded-lg p-2 text-zinc-400 hover:bg-zinc-900 hover:text-zinc-50"
@@ -60,21 +60,17 @@ export function Navigation({ currentPage, onNavigate }: NavigationProps) {
           </button>
         </div>
 
-        {/* Mobile Navigation */}
         {mobileMenuOpen && (
           <div className="border-t border-zinc-800 py-4 md:hidden">
             {navItems.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => handleNavigate(item.id)}
-                className={`block w-full px-4 py-3 text-left rounded-lg transition-colors ${
-                  currentPage === item.id
-                    ? 'bg-zinc-800 text-zinc-50'
-                    : 'text-zinc-400 hover:text-zinc-50 hover:bg-zinc-900'
-                }`}
+              <NavLink
+                key={item.path}
+                to={item.path}
+                onClick={() => setMobileMenuOpen(false)}
+                className={getMobileLinkClass}
               >
                 {item.label}
-              </button>
+              </NavLink>
             ))}
           </div>
         )}

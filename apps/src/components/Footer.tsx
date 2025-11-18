@@ -1,4 +1,5 @@
 import { Code2, Github, Twitter, Linkedin, Mail } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export function Footer() {
   return (
@@ -8,36 +9,44 @@ export function Footer() {
           {/* Brand */}
           <div>
             <div className="mb-4 flex items-center gap-2">
-              <div className="rounded-lg bg-gradient-to-br from-blue-500 to-violet-600 p-2">
-                <Code2 className="h-5 w-5" />
-              </div>
-              <span className="font-mono text-zinc-50">DevAcademy</span>
+              <Link to="/" className="flex items-center gap-2 cursor-pointer">
+                <div className="rounded-lg bg-gradient-to-br from-blue-500 to-violet-600 p-2">
+                  <Code2 className="h-5 w-5" />
+                </div>
+                <span className="font-mono text-zinc-50">DevAcademy</span>
+              </Link>
             </div>
             <p className="text-sm text-zinc-400">
               La plateforme de formation pour développeurs. Apprenez, pratiquez, excellez.
             </p>
+            
+            {/* Les réseaux sociaux restent des liens externes <a> */}
             <div className="mt-4 flex gap-2">
               <a
                 href="#"
                 className="rounded-lg bg-zinc-900 p-2 text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-zinc-100"
+                aria-label="Github"
               >
                 <Github className="h-5 w-5" />
               </a>
               <a
                 href="#"
                 className="rounded-lg bg-zinc-900 p-2 text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-zinc-100"
+                aria-label="Twitter"
               >
                 <Twitter className="h-5 w-5" />
               </a>
               <a
                 href="#"
                 className="rounded-lg bg-zinc-900 p-2 text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-zinc-100"
+                aria-label="LinkedIn"
               >
                 <Linkedin className="h-5 w-5" />
               </a>
               <a
-                href="#"
+                href="mailto:contact@devacademy.fr"
                 className="rounded-lg bg-zinc-900 p-2 text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-zinc-100"
+                aria-label="Email"
               >
                 <Mail className="h-5 w-5" />
               </a>
@@ -48,30 +57,34 @@ export function Footer() {
           <div>
             <h4 className="mb-4 text-zinc-50">Programmes</h4>
             <ul className="space-y-2 text-sm text-zinc-400">
+              {/* Note: Idéalement, ces liens devraient inclure un paramètre d'URL 
+                  (ex: /programmes?cat=web) pour filtrer automatiquement.
+                  Pour l'instant, ils redirigent vers la page principale des programmes.
+              */}
               <li>
-                <a href="#" className="hover:text-zinc-100 transition-colors">
+                <Link to="/programmes" className="hover:text-zinc-100 transition-colors">
                   Web Development
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-zinc-100 transition-colors">
+                <Link to="/programmes" className="hover:text-zinc-100 transition-colors">
                   Data Science
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-zinc-100 transition-colors">
+                <Link to="/programmes" className="hover:text-zinc-100 transition-colors">
                   Mobile Development
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-zinc-100 transition-colors">
+                <Link to="/programmes" className="hover:text-zinc-100 transition-colors">
                   Cloud & DevOps
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-zinc-100 transition-colors">
+                <Link to="/programmes" className="hover:text-zinc-100 transition-colors">
                   Cybersecurity
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -80,6 +93,7 @@ export function Footer() {
           <div>
             <h4 className="mb-4 text-zinc-50">Entreprise</h4>
             <ul className="space-y-2 text-sm text-zinc-400">
+              {/* Ces pages n'existent pas encore, on laisse des ancres vides ou on redirige vers l'accueil/contact */}
               <li>
                 <a href="#" className="hover:text-zinc-100 transition-colors">
                   À propos
@@ -113,27 +127,27 @@ export function Footer() {
             <h4 className="mb-4 text-zinc-50">Support</h4>
             <ul className="space-y-2 text-sm text-zinc-400">
               <li>
-                <a href="#" className="hover:text-zinc-100 transition-colors">
+                <Link to="/faq" className="hover:text-zinc-100 transition-colors">
                   Centre d'aide
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-zinc-100 transition-colors">
+                <a href="/faq" className="hover:text-zinc-100 transition-colors">
                   FAQ
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-zinc-100 transition-colors">
+                <Link to="/contact" className="hover:text-zinc-100 transition-colors">
                   Contact
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-zinc-100 transition-colors">
+                <a href="/cgu" className="hover:text-zinc-100 transition-colors">
                   Conditions d'utilisation
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-zinc-100 transition-colors">
+                <a href="/confidentialite" className="hover:text-zinc-100 transition-colors">
                   Politique de confidentialité
                 </a>
               </li>

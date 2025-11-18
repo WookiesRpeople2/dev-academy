@@ -1,5 +1,6 @@
-import { Search, Clock, Users, Star, Filter } from 'lucide-react';
+import { Search, Clock, Users, Star } from 'lucide-react';
 import { useState } from 'react';
+import { Link } from 'react-router-dom'; 
 import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
@@ -7,11 +8,10 @@ import type { Course } from '../App';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 
 interface ProgrammesProps {
-  onSelectCourse: (course: Course) => void;
   featured?: boolean;
 }
 
-const mockCourses: Course[] = [
+export const mockCourses: Course[] = [
   {
     id: '1',
     title: 'Développement Web Full Stack',
@@ -171,7 +171,7 @@ const mockCourses: Course[] = [
   }
 ];
 
-export function Programmes({ onSelectCourse, featured = false }: ProgrammesProps) {
+export function Programmes({ featured = false }: ProgrammesProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Tous');
 
@@ -234,9 +234,9 @@ export function Programmes({ onSelectCourse, featured = false }: ProgrammesProps
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {displayCourses.map((course) => (
-            <div
+            <Link
               key={course.id}
-              onClick={() => onSelectCourse(course)}
+              to={`/cours/${course.id}`}
               className="group cursor-pointer overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900/50 backdrop-blur-sm transition-all hover:border-zinc-700 hover:bg-zinc-900"
             >
               <div className="relative aspect-video overflow-hidden bg-zinc-800">
@@ -288,18 +288,20 @@ export function Programmes({ onSelectCourse, featured = false }: ProgrammesProps
                   </p>
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
 
         {featured && (
           <div className="mt-8 text-center">
-            <Button 
-              variant="outline"
-              className="border-zinc-700 bg-zinc-900/50 text-zinc-100 hover:bg-zinc-800 hover:text-zinc-50"
-            >
-              Voir tous les cours
-            </Button>
+            <Link to="/programmes">
+              <Button 
+                variant="outline"
+                className="border-zinc-700 bg-zinc-900/50 text-zinc-100 hover:bg-zinc-800 hover:text-zinc-50"
+              >
+                Voir tous les cours
+              </Button>
+            </Link>
           </div>
         )}
       </div>
