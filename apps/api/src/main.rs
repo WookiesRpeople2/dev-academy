@@ -1,21 +1,28 @@
-use std::{env, io};
+use std::io;
+use actix_web::{web, App, HttpServer};
+use config::Config;
 
-use actix_web::{App, HttpServer};
-
-
+pub mod config;
+pub mod error;
+pub mod service;
+pub mod traits;
+pub mod dtos;
+pub mod handlers;
+pub mod models;
+pub mod routes;
 
 #[actix_web::main]
 async fn main() -> io::Result<()> {
-    HttpServer::new(|| {
+    let config = Config::new().await;
+    let app_state = web::Data::new(config);
+
+    HttpServer::new(move || {
         App::new()
-            .wrap(middleware::Logger::default())
-            .service(tweet::list)
-            .service(tweet::get)
-            .service(tweet::create)
-            .service(tweet::delete)
-            .service(like::list)
-            .service(like::plus_one)
-            .service(like::minus_one)
+        .app_data(app_state.clone())
+        .service(
+                web::scope("/api")
+                    .configure(routes::programes::programs_routes)
+            )
     })
     .bind("0.0.0.0:9090")?
     .run()

@@ -1,0 +1,59 @@
+use serde::{Deserialize, Serialize};
+use neo4rs::Error;
+use crate::{error::ApiError, models::programe::{Course, Lesson, Module}, traits::from_node::FromNode};
+
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ProgramDetail {
+    pub course: Course,
+    pub modules: Vec<ModuleWithLessons>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ModuleWithLessons {
+    pub module: Module,
+    pub lessons: Vec<Lesson>,
+}
+
+#[derive(Serialize, Deserialize, Debug, sqlx::FromRow, Default)]
+pub struct CourseStats {
+    pub lesson_count: i64,
+    pub total_duration: i64,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct CreateCourseRequest {
+    pub title: String,
+    pub description: String,
+    pub status: String,
+}
+
+impl FromNode for ProgramDetail {
+    fn from_node(node: &neo4rs::Node) -> Result<Self, ApiError> {
+        let course_node: neo4rs::Node = node.get("course")
+            .map_err(|_| ApiError::Neo4j(Error::ConversionError))?;
+        let course = Course::from_node(&course_node)?;
+
+        let modules_nodes: Vec<neo4rs::Node> = node.get("modules")
+            .map_err(|_| ApiError::Neo4j(Error::ConversionError))?;
+        let mut modules_with_lessons = Vec::new();
+
+        for module_node in modules_nodes {
+            let module = Module::from_node(&module_node)?;
+
+            let lessons_nodes: Vec<neo4rs::Node> = node.get("lessons")
+                .map_err(|_| ApiError::Neo4j(Error::ConversionError))?;
+            let lessons: Vec<Lesson> = lessons_nodes
+                .iter()
+                .map(|n| Lesson::from_node(n))
+                .collect::<Result<_, _>>()?;
+
+            modules_with_lessons.push(ModuleWithLessons { module, lessons });
+        }
+
+        Ok(Self {
+            course,
+            modules: modules_with_lessons,
+        })
+    }
+}
