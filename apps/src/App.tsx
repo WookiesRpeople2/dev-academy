@@ -6,7 +6,7 @@ import { Hero } from "./components/Hero";
 import { Contact } from "./components/Contact";
 import { CourseViewer } from "./components/CourseViewer";
 import { Footer } from "./components/Footer";
-import { Programmes, mockCourses } from "./components/Programmes";
+import { Programmes } from "./components/Programmes";
 import { Inscription } from "./components/Inscription";
 import { Connexion } from "./pages/auth/Connexion";
 import { FAQ } from "./pages/support/FAQ";
@@ -73,7 +73,9 @@ function AuthProvider({ children }: { children: ReactNode }) {
   }
   useEffect(() => {
     validateToken().then((ok) => setIsAuthenticated(ok));
-    const onAuthChanged = () => setIsAuthenticated(localStorage.getItem("auth") === "true");
+    const onAuthChanged = () => {
+      validateToken().then((ok) => setIsAuthenticated(ok));
+    };
     window.addEventListener("auth-changed", onAuthChanged as EventListener);
     window.addEventListener("storage", onAuthChanged as EventListener);
     return () => {
@@ -82,11 +84,9 @@ function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
   const login = () => {
-    localStorage.setItem("auth", "true");
-    setIsAuthenticated(true);
+    validateToken().then((ok) => setIsAuthenticated(ok));
   };
   const logout = () => {
-    localStorage.setItem("auth", "false");
     localStorage.removeItem("tokenPayload");
     localStorage.removeItem("tokenSig");
     localStorage.removeItem("tokenExp");
@@ -115,13 +115,59 @@ const HomePage = () => {
 const CourseViewerWrapper = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  
-  const course = mockCourses.find(c => c.id === id);
-  
+  const [course, setCourse] = useState<Course | null>(null);
+  const [loading, setLoading] = useState(true);
+  const API_BASE = (import.meta.env.VITE_API_URL ?? 'http://localhost:9090/api');
+
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+    fetch(`${API_BASE}/programs/${id}`)
+      .then(async (res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
+      .then((data) => {
+        const detail = Array.isArray(data?.program) ? data.program[0] : null;
+        if (!detail) return;
+        const base = detail.course ?? {};
+        const modules = Array.isArray(detail.modules) ? detail.modules.map((mw: any) => ({
+          id: String(mw?.module?.id ?? ''),
+          title: String(mw?.module?.title ?? ''),
+          lessons: Array.isArray(mw?.lessons) ? mw.lessons.map((l: any) => ({
+            id: String(l.id ?? ''),
+            title: String(l.title ?? ''),
+            duration: `${Number(l.duration_minutes ?? 0)} min`,
+            type: 'video',
+            completed: Boolean(l.completed ?? false),
+          })) : [],
+        })) : [];
+        const adapted: Course = {
+          id: String(base.id ?? ''),
+          title: String(base.title ?? ''),
+          description: String(base.description ?? ''),
+          category: 'Web Development',
+          level: base.status === 'active' ? 'Intermédiaire' : 'Débutant',
+          duration: `${Number(base.total_duration_minutes ?? 0)} min`,
+          students: 0,
+          rating: 4.8,
+          image: 'https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?auto=format&q=80&w=1080',
+          instructor: 'DevAcademy',
+          modules,
+        };
+        if (active) setCourse(adapted);
+      })
+      .catch(() => {})
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [API_BASE, id]);
+
+  if (loading) {
+    return <div className="text-center pt-20">Chargement…</div>;
+  }
   if (!course) {
     return <div className="text-center pt-20">Cours non trouvé</div>;
   }
-  
   return (
     <CourseViewer 
        course={course} 

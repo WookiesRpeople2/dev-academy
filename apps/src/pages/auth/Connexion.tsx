@@ -38,12 +38,11 @@ export function Connexion() {
     localStorage.setItem("tokenPayload", payloadStr);
     localStorage.setItem("tokenSig", sig);
     localStorage.setItem("tokenExp", String(payload.exp));
-    localStorage.setItem("auth", "true");
     emitAuthChanged();
   }
   const loginSimple = useCallback(() => {
-    issueToken("guest").then(() => afterLogin());
-  }, [afterLogin]);
+    toast.error("Passkey indisponible sur cet appareil");
+  }, []);
   const loginWithPassword = useCallback(async () => {
     if (!email || !password) {
       toast.error("Veuillez saisir votre email et mot de passe");
@@ -70,7 +69,10 @@ export function Connexion() {
   }, [email, password, loginSimple]);
   const loginWithPasskey = useCallback(async () => {
     try {
-      if (!("PublicKeyCredential" in window)) return loginSimple();
+      if (!("PublicKeyCredential" in window)) {
+        toast.error("Passkey non supporté");
+        return;
+      }
       const challenge = new Uint8Array(32);
       crypto.getRandomValues(challenge);
       const cred = await navigator.credentials.get({
@@ -82,16 +84,22 @@ export function Connexion() {
         },
         mediation: "optional",
       } as any);
-      if (cred) await issueToken("passkey-user");
-      else await issueToken("guest");
-      afterLogin();
+      if (cred) {
+        await issueToken("passkey-user");
+        afterLogin();
+      } else {
+        toast.error("Échec de la connexion Passkey");
+      }
     } catch {
-      loginSimple();
+      toast.error("Erreur Passkey");
     }
   }, [loginSimple]);
   const createPasskey = useCallback(async () => {
     try {
-      if (!("PublicKeyCredential" in window)) return loginSimple();
+      if (!("PublicKeyCredential" in window)) {
+        toast.error("Passkey non supporté");
+        return;
+      }
       const challenge = new Uint8Array(32);
       crypto.getRandomValues(challenge);
       const userId = new Uint8Array(16);
@@ -106,11 +114,14 @@ export function Connexion() {
         },
         signal: undefined,
       } as any);
-      if (cred) await issueToken("passkey-user");
-      else await issueToken("guest");
-      afterLogin();
+      if (cred) {
+        await issueToken("passkey-user");
+        afterLogin();
+      } else {
+        toast.error("Création de Passkey annulée");
+      }
     } catch {
-      loginSimple();
+      toast.error("Erreur lors de la création de Passkey");
     }
   }, [loginSimple]);
   return (

@@ -71,14 +71,12 @@ export function Inscription() {
     localStorage.setItem('tokenPayload', payloadStr);
     localStorage.setItem('tokenSig', sig);
     localStorage.setItem('tokenExp', String(payload.exp));
-    localStorage.setItem('auth', 'true');
     emitAuthChanged();
   }
   const loginWithPasskey = async () => {
     try {
       if (!('PublicKeyCredential' in window)) {
-        await issueToken('guest');
-        navigate('/programmes', { replace: true });
+        toast.error('Passkey non supporté');
         return;
       }
       const challenge = new Uint8Array(32);
@@ -92,18 +90,20 @@ export function Inscription() {
         },
         mediation: 'optional',
       } as any);
-      if (cred) await issueToken('passkey-user'); else await issueToken('guest');
-      navigate('/programmes', { replace: true });
+      if (cred) {
+        await issueToken('passkey-user');
+        navigate('/programmes', { replace: true });
+      } else {
+        toast.error('Échec de la connexion Passkey');
+      }
     } catch {
-      await issueToken('guest');
-      navigate('/programmes', { replace: true });
+      toast.error('Erreur Passkey');
     }
   };
   const createPasskey = async () => {
     try {
       if (!('PublicKeyCredential' in window)) {
-        await issueToken('guest');
-        navigate('/programmes', { replace: true });
+        toast.error('Passkey non supporté');
         return;
       }
       const challenge = new Uint8Array(32);
@@ -119,11 +119,14 @@ export function Inscription() {
           authenticatorSelection: { residentKey: 'preferred' },
         },
       } as any);
-      if (cred) await issueToken('passkey-user'); else await issueToken('guest');
-      navigate('/programmes', { replace: true });
+      if (cred) {
+        await issueToken('passkey-user');
+        navigate('/programmes', { replace: true });
+      } else {
+        toast.error('Création de Passkey annulée');
+      }
     } catch {
-      await issueToken('guest');
-      navigate('/programmes', { replace: true });
+      toast.error('Erreur lors de la création de Passkey');
     }
   };
 

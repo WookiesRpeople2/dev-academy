@@ -1,6 +1,6 @@
 import { Search, Clock, Users, Star } from 'lucide-react';
-import { useState } from 'react';
-import { Link } from 'react-router-dom'; 
+import { useEffect, useState } from 'react';
+import { Link, useLocation } from 'react-router-dom'; 
 import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
@@ -174,10 +174,71 @@ export const mockCourses: Course[] = [
 export function Programmes({ featured = false }: ProgrammesProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Tous');
+  const location = useLocation();
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const API_BASE = (import.meta.env.VITE_API_URL ?? 'http://localhost:9090/api');
+
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+    setError(null);
+    fetch(`${API_BASE}/programs`)
+      .then(async (res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
+      .then((data) => {
+        const list = Array.isArray(data?.programs) ? data.programs : [];
+        const adapted: Course[] = list.map((c: any) => ({
+          id: String(c.id ?? ''),
+          title: String(c.title ?? ''),
+          description: String(c.description ?? ''),
+          category: 'Web Development',
+          level: c.status === 'active' ? 'Intermédiaire' : 'Débutant',
+          duration: `${Number(c.total_duration_minutes ?? 0)} min`,
+          students: 0,
+          rating: 4.8,
+          image: 'https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?auto=format&q=80&w=1080',
+          instructor: 'DevAcademy',
+          modules: Array.isArray(c.modules) ? c.modules.map((m: any) => ({
+            id: String(m.id ?? ''),
+            title: String(m.title ?? ''),
+            lessons: Array.isArray(m.lessons) ? m.lessons.map((l: any) => ({
+              id: String(l.id ?? ''),
+              title: String(l.title ?? ''),
+              duration: `${Number(l.duration_minutes ?? 0)} min`,
+              type: 'video',
+              completed: Boolean(l.completed ?? false),
+            })) : [],
+          })) : [],
+        }));
+        if (active) setCourses(adapted);
+      })
+      .catch((e) => {
+        if (active) setError(String(e.message || e));
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => { active = false; };
+  }, [API_BASE]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const cat = params.get('cat');
+    const categories = ['Tous', 'Web Development', 'Data Science', 'Mobile Development', 'Cloud & DevOps', 'Cybersecurity'];
+    if (cat && categories.includes(cat)) {
+      setSelectedCategory(cat);
+    }
+  }, [location.search]);
 
   const categories = ['Tous', 'Web Development', 'Data Science', 'Mobile Development', 'Cloud & DevOps', 'Cybersecurity'];
 
-  const filteredCourses = mockCourses.filter(course => {
+  const sourceCourses = courses.length ? courses : mockCourses;
+  const filteredCourses = sourceCourses.filter(course => {
     const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          course.description.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === 'Tous' || course.category === selectedCategory;
@@ -199,6 +260,12 @@ export function Programmes({ featured = false }: ProgrammesProps) {
               : 'Explorez notre catalogue complet de formations professionnelles'
             }
           </p>
+          {!featured && (
+            <div className="mt-2 text-sm text-zinc-400">
+              {loading && 'Chargement…'}
+              {!loading && error && 'Erreur de chargement des programmes'}
+            </div>
+          )}
         </div>
 
         {!featured && (
