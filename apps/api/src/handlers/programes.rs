@@ -1,6 +1,6 @@
 use actix_web::web;
-use actix_web::{delete, get, post, HttpResponse};
-use crate::dtos::programe::ProgramDetail;
+use actix_web::{delete, get, post, put, HttpResponse};
+use crate::dtos::programe::{ProgramDetail, UpdateCourseRequest};
 use crate::models::programe::Course;
 use crate::service::AppServices;
 use crate::traits::redis_trait::RedisCache;
@@ -89,6 +89,92 @@ pub async fn create_program(
     services.cache.delete_all("programs:*").await?;
     
     Ok(HttpResponse::Created().json(course))
+}
+
+#[put("/programs/{id}")]
+pub async fn update_program(
+    path: web::Path<String>,
+    req: web::Json<UpdateCourseRequest>,
+    services: web::Data<AppServices>,
+) -> Result<HttpResponse, ApiError> {
+    let course_id = path.into_inner();
+    
+    let mut query = "MATCH (c:Course {id: $course_id}) SET ".to_string();
+    let mut updates = Vec::new();
+    
+    if let Some(title) = &req.title {
+        updates.push(format!("c.title = '{}'", title.replace("'", "\\'")));
+    }
+    if let Some(description) = &req.description {
+        updates.push(format!("c.description = '{}'", description.replace("'", "\\'")));
+    }
+    if let Some(status) = &req.status {
+        updates.push(format!("c.status = '{}'", status));
+    }
+    if let Some(cover) = &req.cover {
+        updates.push(format!("c.cover = '{}'", cover));
+    }
+    if let Some(prerequisites) = &req.prerequisites {
+        let prereq_str = prerequisites
+            .iter()
+            .map(|p| format!("'{}'", p.replace("'", "\\'")))
+            .collect::<Vec<_>>()
+            .join(", ");
+        updates.push(format!("c.prerequisites = [{}]", prereq_str));
+    }
+    if let Some(documents) = &req.documents {
+        let doc_str = documents
+            .iter()
+            .map(|d| format!("'{}'", d.replace("'", "\\'")))
+            .collect::<Vec<_>>()
+            .join(", ");
+        updates.push(format!("c.documents = [{}]", doc_str));
+    }
+    if let Some(duration) = &req.total_duration_minitues {
+        updates.push(format!("c.total_duration_minutes = {}", duration));
+    }
+    
+    if updates.is_empty() {
+        return Err(ApiError::Internal("No fields to update".to_string()));
+    }
+    
+    query.push_str(&updates.join(", "));
+    query.push_str(" RETURN c");
+    
+    let updated_courses: Vec<Course> = services.neo4j
+        .query_nodes(&query)
+        .param("course_id", course_id.clone())
+        .fetch_key("c")
+        .fetch()
+        .await?;
+    
+    if updated_courses.is_empty() {
+        return Err(ApiError::NotFound("Program not found".to_string()));
+    }
+    
+    if let Some(module_ids) = &req.module_ids {
+        services.neo4j
+            .query_nodes("MATCH (c:Course {id: $course_id})-[r:HAS_MODULE]->() DELETE r")
+            .param("course_id", course_id.clone())
+            .fetch::<Course>()
+            .await?;
+        
+        for module_id in module_ids {
+            let _ = services.neo4j.create_relationship(
+                &course_id,
+                module_id,
+                "Course",
+                "Module",
+                "HAS_MODULE",
+                None
+            ).await;
+        }
+    }
+    
+    services.kafka.publish_cache_invalidation("course_updated", &course_id).await?;
+    services.cache.delete_all("programs:*").await?;
+    
+    Ok(HttpResponse::Ok().json(updated_courses.get(0)))
 }
 
 #[delete("/programs/{id}")]

@@ -1,9 +1,8 @@
 use std::io;
 use actix_web::{web, App, HttpServer};
 use config::Config;
-use futures::lock::Mutex;
 
-use crate::service::{kafka_service::KafkaService, neo4j_service::Neo4jService, postgres_service::PostgresService, redis_cache_service::CacheService, s3_service::S3Service, AppServices};
+use crate::{service::{kafka_service::KafkaService, neo4j_service::Neo4jService, postgres_service::PostgresService, redis_cache_service::CacheService, s3_service::S3Service, AppServices}};
 
 pub mod config;
 pub mod error;
@@ -35,6 +34,8 @@ async fn main() -> io::Result<()> {
         .service(
                 web::scope("/api")
                     .configure(routes::programes::programs_routes)
+                    .configure(routes::modules::modules_routes)
+                    .configure(routes::lessons::lessons_routes)
             )
     })
     .bind("0.0.0.0:9090")?

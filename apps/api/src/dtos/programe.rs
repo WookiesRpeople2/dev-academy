@@ -33,6 +33,18 @@ pub struct CreateCourseRequest {
     pub total_duration_minitues: String
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct UpdateCourseRequest {
+    pub title: Option<String>,
+    pub description: Option<String>,
+    pub status: Option<String>,
+    pub cover: Option<String>,
+    pub module_ids: Option<Vec<String>>,
+    pub prerequisites: Option<Vec<String>>,
+    pub documents: Option<Vec<String>>,
+    pub total_duration_minitues: Option<String>
+}
+
 impl FromNode for ProgramDetail {
     fn from_node(node: &neo4rs::Node) -> Result<Self, ApiError> {
         let course_node: neo4rs::Node = node.get("course")
@@ -59,6 +71,26 @@ impl FromNode for ProgramDetail {
         Ok(Self {
             course,
             modules: modules_with_lessons,
+        })
+    }
+}
+
+impl FromNode for ModuleWithLessons {
+    fn from_node(node: &neo4rs::Node) -> Result<Self, ApiError> {
+        let module_node: neo4rs::Node = node.get("m")
+            .map_err(|_| ApiError::Neo4j(Error::ConversionError))?;
+        let module = Module::from_node(&module_node)?;
+
+        let lessons_nodes: Vec<neo4rs::Node> = node.get("lessons")
+            .map_err(|_| ApiError::Neo4j(Error::ConversionError))?;
+        let lessons: Vec<Lesson> = lessons_nodes
+            .iter()
+            .map(|n| Lesson::from_node(n))
+            .collect::<Result<_, _>>()?;
+
+        Ok(Self {
+            module,
+            lessons,
         })
     }
 }
