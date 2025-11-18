@@ -8,6 +8,7 @@ export function Navigation() {
   const navItems = [
     { path: '/', label: 'Accueil' },
     { path: '/programmes', label: 'Programmes' },
+    { path: '/inscription', label: 'Inscription' },
     { path: '/contact', label: 'Contact' },
   ];
 

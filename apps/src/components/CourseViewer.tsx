@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { ArrowLeft, Play, BookOpen, CheckCircle, Lock, Clock, Award } from 'lucide-react';
+import { ArrowLeft, Play, BookOpen, CheckCircle, Clock, Award } from 'lucide-react';
 import { Button } from './ui/button';
 import { Progress } from './ui/progress';
-import type { Course, Module, Lesson } from '../App';
+import type { Course, Lesson } from '../App';
 
 interface CourseViewerProps {
   course: Course;

@@ -8,15 +8,12 @@ interface HeroProps {
 export function Hero({ onGetStarted }: HeroProps) {
   return (
     <div className="relative overflow-hidden">
+      {/* Background gradient */}
       <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-violet-500/10 to-pink-500/10" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/20 via-zinc-950 to-zinc-950" />
       
       <div className="relative mx-auto max-w-7xl px-4 py-24 sm:px-6 sm:py-32 lg:px-8">
         <div className="mx-auto max-w-3xl text-center">
-          <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-zinc-800 bg-zinc-900/50 px-4 py-2 backdrop-blur-sm">
-            <Zap className="h-4 w-4 text-yellow-500" />
-            <span className="text-sm text-zinc-300">Plateforme de formation pour développeurs</span>
-          </div>
           
           <h1 className="mb-6 bg-gradient-to-br from-zinc-50 via-zinc-200 to-zinc-400 bg-clip-text text-transparent">
             Développez vos compétences avec DevAcademy
@@ -28,6 +25,7 @@ export function Hero({ onGetStarted }: HeroProps) {
           </p>
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            {/* Premier bouton (Déjà OK) */}
             <Button 
               onClick={onGetStarted}
               className="bg-gradient-to-r from-blue-500 to-violet-600 hover:from-blue-600 hover:to-violet-700 text-white border-0 group"
@@ -37,6 +35,7 @@ export function Hero({ onGetStarted }: HeroProps) {
             </Button>
             <Button 
               variant="outline"
+              onClick={onGetStarted}
               className="border-zinc-700 bg-zinc-900/50 text-zinc-100 hover:bg-zinc-800 hover:text-zinc-50"
             >
               Explorer les cours

@@ -5,6 +5,7 @@ import { Contact } from "./components/Contact";
 import { CourseViewer } from "./components/CourseViewer";
 import { Footer } from "./components/Footer";
 import { Programmes, mockCourses } from "./components/Programmes";
+import { Inscription } from "./components/Inscription";
 import { FAQ } from "./pages/support/FAQ";
 import { Terms } from "./pages/support/Terms";
 import { Privacy } from "./pages/support/Privacy";
@@ -69,14 +70,15 @@ export default function App() {
           <Routes>
             <Route path="/" element={
               <>
-                <Hero onGetStarted={() => null} /> 
-                <Programmes featured={true} />
+          <Hero onGetStarted={() => setCurrentPage("programmes")}/>
+                          <Programmes featured={true} />
               </>
             } />
 
             <Route path="/programmes" element={
               <Programmes />
             } />
+<Route path="/inscription" element={<Inscription />} />
 
             <Route path="/cours/:id" element={<CourseViewerWrapper />} />
 
