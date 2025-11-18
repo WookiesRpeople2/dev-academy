@@ -8,6 +8,11 @@ import { Programmes, mockCourses } from "./components/Programmes";
 import { FAQ } from "./pages/support/FAQ";
 import { Terms } from "./pages/support/Terms";
 import { Privacy } from "./pages/support/Privacy";
+import { About } from "./pages/company/About";
+import { Team } from "./pages/company/Team";
+import { Careers } from "./pages/company/Carrers";
+import { Blog } from "./pages/company/Blog";
+import { Partners } from "./pages/company/Partners";
 export interface Course {
   id: string;
   title: string;
@@ -80,8 +85,14 @@ export default function App() {
             <Route path="*" element={<div className="p-20 text-center">Page non trouvée</div>} />
 
             <Route path="/faq" element={<FAQ />} />
-  <Route path="/cgu" element={<Terms />} />
-  <Route path="/confidentialite" element={<Privacy />} />
+            <Route path="/cgu" element={<Terms />} />
+            <Route path="/confidentialite" element={<Privacy />} />
+
+            <Route path="/a-propos" element={<About />} />
+<Route path="/equipe" element={<Team />} />
+<Route path="/carrieres" element={<Careers />} />
+<Route path="/blog" element={<Blog />} />
+<Route path="/partenaires" element={<Partners />} />
           </Routes>
         </main>
         

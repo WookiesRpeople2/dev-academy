@@ -94,31 +94,11 @@ export function Footer() {
             <h4 className="mb-4 text-zinc-50">Entreprise</h4>
             <ul className="space-y-2 text-sm text-zinc-400">
               {/* Ces pages n'existent pas encore, on laisse des ancres vides ou on redirige vers l'accueil/contact */}
-              <li>
-                <a href="#" className="hover:text-zinc-100 transition-colors">
-                  À propos
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-zinc-100 transition-colors">
-                  Notre équipe
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-zinc-100 transition-colors">
-                  Carrières
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-zinc-100 transition-colors">
-                  Partenaires
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-zinc-100 transition-colors">
-                  Blog
-                </a>
-              </li>
+           <li><Link to="/a-propos" className="hover:text-zinc-100 transition-colors">À propos</Link></li>
+  <li><Link to="/equipe" className="hover:text-zinc-100 transition-colors">Notre équipe</Link></li>
+  <li><Link to="/carrieres" className="hover:text-zinc-100 transition-colors">Carrières</Link></li>
+  <li><Link to="/partenaires" className="hover:text-zinc-100 transition-colors">Partenaires</Link></li>
+  <li><Link to="/blog" className="hover:text-zinc-100 transition-colors">Blog</Link></li>
             </ul>
           </div>
 
