@@ -26,6 +26,11 @@ pub struct CreateCourseRequest {
     pub title: String,
     pub description: String,
     pub status: String,
+    pub cover: String,
+    pub module_ids: Vec<String>,
+    pub prerequisites: Vec<String>,
+    pub documents: Vec<String>,
+    pub total_duration_minitues: String
 }
 
 impl FromNode for ProgramDetail {

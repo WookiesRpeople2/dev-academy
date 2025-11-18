@@ -12,7 +12,7 @@ pub async fn seed_database(config: &Config) -> Result<()> {
     println!("Initializing services...");
     let neo4j = Neo4jService::new(config.neo4j.clone());
     let kafka = KafkaService::new(config.kafka_producer.clone());
-    let mut cache = CacheService::new(config.redis.clone());
+    let cache = CacheService::new(config.redis.clone());
 
     println!("Clearing existing cache...");
     cache.delete_all("programs:*").await?;

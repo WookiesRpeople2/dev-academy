@@ -10,9 +10,11 @@ pub struct Course {
     pub title: String,
     pub description: String,
     pub status: String,
+    pub cover: String,
     pub modules: Vec<Module>,
     pub prerequisites: Vec<String>,
-    pub total_duration_minutes: i32, 
+    pub documents: Vec<String>,
+    pub total_duration_minutes: i32,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -32,6 +34,7 @@ pub struct Lesson {
     pub duration_minutes: i32,
     pub prerequisites: Vec<String>,
     pub completed: bool,
+    pub video: String
 }
 
 
@@ -42,8 +45,10 @@ impl Course {
             title: String::new(),
             description: String::new(),
             status: "draft".to_string(),
+            cover: String::new(),
             modules: vec![],
             prerequisites: vec![],
+            documents: vec![],
             total_duration_minutes: 0,
         }
     }
@@ -69,7 +74,8 @@ impl Lesson {
             order: 0,
             duration_minutes: 0,
             prerequisites: vec![],
-            completed: false
+            completed: false,
+            video: String::new()
         }
     }
 }
@@ -82,8 +88,10 @@ impl FromNode for Course {
             title: node.get("title").unwrap_or_default(),
             description: node.get("description").unwrap_or_default(),
             status: node.get("status").unwrap_or("draft".to_string()),
+            cover: node.get("cover").unwrap_or_default(),
             modules: vec![],
             prerequisites: vec![],
+            documents: vec![],
             total_duration_minutes: 0,
         })
     }
@@ -109,7 +117,8 @@ impl FromNode for Lesson {
             order: node.get("order").unwrap_or(0),
             duration_minutes: node.get("duration_minutes").unwrap_or(0),
             prerequisites: vec![],
-            completed: node.get("completed").unwrap_or(false)
+            completed: node.get("completed").unwrap_or(false),
+            video: node.get::<String>("id").map_err(|_| ApiError::Neo4j(Error::ConversionError))?
         })
     }
 }

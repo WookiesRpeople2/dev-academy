@@ -1,3 +1,4 @@
+use async_trait::async_trait;
 use redis::{AsyncCommands, Client};
 use serde::{Serialize, de::DeserializeOwned};
 use crate::{error::ApiError, traits::redis_trait::RedisCache};
@@ -17,34 +18,36 @@ impl CacheService {
     }
 }
 
+#[async_trait]
 impl RedisCache for CacheService {
-    async fn get<T: DeserializeOwned>(&mut self, key: &str) -> Result<Option<T>, ApiError> {
+    async fn get<T>(&self, key: &str) -> Result<Option<T>, ApiError>
+    where
+        T: DeserializeOwned + Send + Sync,
+    {
         let cached: Option<String> = self.conn().await?.get(key).await?;
-
         match cached {
-            Some(json) => {
-                let parsed: T = serde_json::from_str(&json)?;
-                Ok(Some(parsed))
-            }
+            Some(json) => Ok(Some(serde_json::from_str(&json)?)),
             None => Ok(None),
         }
     }
 
-    async fn set<T: Serialize>(&mut self, key: &str, value: &T, ttl_seconds: u64) -> Result<(), ApiError> {
+    async fn set<T>(&self, key: &str, value: &T, ttl_seconds: u64) -> Result<(), ApiError>
+    where
+        T: Serialize + Send + Sync,
+    {
         let mut con = self.conn().await?;
         let json = serde_json::to_string(value)?;
         let _: () = con.set_ex(key, json, ttl_seconds).await?;
         Ok(())
     }
 
-    async fn delete(&mut self, key: &str) -> Result<(), ApiError> {
+    async fn delete(&self, key: &str) -> Result<(), ApiError> {
         let mut con = self.conn().await?;
         let _: () = con.del(key).await?;
         Ok(())
     }
 
-
-    async fn delete_all(&mut self, pattern: &str) -> Result<(), ApiError> {
+    async fn delete_all(&self, pattern: &str) -> Result<(), ApiError> {
         let mut con = self.conn().await?;
         let mut cursor: u64 = 0;
 
@@ -63,9 +66,7 @@ impl RedisCache for CacheService {
                 let _: () = con.del(&key).await?;
             }
 
-            if next_cursor == 0 {
-                break;
-            }
+            if next_cursor == 0 { break; }
             cursor = next_cursor;
         }
 
