@@ -68,7 +68,7 @@ pub async fn signup(
     let token = services.jwt_service.generate_jwt(&user)?;
     let encrypted_token = services.jwt_service.encrypt_token(&token)?;
 
-    let cookie = Cookie::build("auth_token", encrypted_token)
+    let cookie = Cookie::build("auth_token", encrypted_token.clone())
         .path("/")
         .max_age(actix_web::cookie::time::Duration::days(1))
         .http_only(true)
@@ -80,7 +80,7 @@ pub async fn signup(
         user_id: user.id.to_string(),
         email: user.email.clone(),
         username: user.username.clone(),
-        token,
+        token: encrypted_token.clone(),
     }))
 }
 
@@ -111,7 +111,7 @@ pub async fn login_password(
     let token = services.jwt_service.generate_jwt(user)?;
     let encrypted_token = services.jwt_service.encrypt_token(&token)?;
 
-    let cookie = Cookie::build("auth_token", encrypted_token)
+    let cookie = Cookie::build("auth_token", encrypted_token.clone())
         .path("/")
         .max_age(actix_web::cookie::time::Duration::days(1))
         .http_only(true)
@@ -123,6 +123,6 @@ pub async fn login_password(
         user_id: user.id.to_string(),
         email: user.email.clone(),
         username: user.username.clone(),
-        token,
+        token: encrypted_token.clone(),
     }))
 }
