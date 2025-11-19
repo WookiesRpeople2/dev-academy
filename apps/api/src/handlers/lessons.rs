@@ -79,7 +79,6 @@ pub async fn create_lesson(
         .exec()
         .await?;
    
-    services.opensearch.index_lesson(&lesson).await?;
     services.kafka.publish_cache_invalidation("lesson_created", &lesson.id).await?;
     services.cache.delete_all("lessons:*").await?;
     services.cache.delete_all("modules:*").await?;
@@ -141,10 +140,6 @@ pub async fn update_lesson(
         return Err(ApiError::NotFound("Lesson not found".to_string()));
     }
     
-    if let Some(updated_lesson) = updated_lessons.get(0) {
-        services.opensearch.index_lesson(updated_lesson).await?;
-    }
-
     services.kafka.publish_cache_invalidation("lesson_updated", &lesson_id).await?;
     services.cache.delete_all("lessons:*").await?;
     services.cache.delete_all("modules:*").await?;
@@ -169,7 +164,6 @@ pub async fn delete_lesson(
         .fetch::<Lesson>()
         .await?;
     
-    services.opensearch.delete_lesson(&lesson_id).await?;
     services.kafka.publish_cache_invalidation("lesson_deleted", &lesson_id).await?;
     services.cache.delete_all("lessons:*").await?;
     services.cache.delete_all("modules:*").await?;

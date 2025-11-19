@@ -61,7 +61,6 @@ pub async fn seed_database(config: &Config) -> Result<()> {
                 "HAS_MODULE",
                 None,
             ).await?;
-            let _ = opensearch.index_module(module);
 
             for lesson in &module.lessons {
                 let neo_lesson: Lesson = neo4j
@@ -84,7 +83,6 @@ pub async fn seed_database(config: &Config) -> Result<()> {
                     "HAS_LESSON",
                     None,
                 ).await?;
-                let _ = opensearch.index_lesson(lesson);
             }
         }
 

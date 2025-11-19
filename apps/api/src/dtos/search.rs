@@ -54,3 +54,18 @@ pub struct SearchResultResponse<T> {
     pub size: i64,
     pub source: String,
 }
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct CourseSearchResult {
+    pub id: String,
+    pub title: String,
+    pub description: String,
+    pub status: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub cover: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub prerequisites: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub documents: Option<Vec<String>>,
+    pub total_duration_minutes: i32,
+}

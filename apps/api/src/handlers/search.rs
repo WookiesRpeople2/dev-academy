@@ -1,6 +1,6 @@
 use actix_web::web;
 use actix_web::{post, HttpResponse};
-use crate::dtos::search::{FilterRequest, SearchRequest, SearchResultResponse};
+use crate::dtos::search::{CourseSearchResult, FilterRequest, SearchRequest, SearchResultResponse};
 use crate::models::programe::Course;
 use crate::models::search::FilterCondition;
 use crate::service::AppServices;
@@ -20,14 +20,14 @@ pub async fn search_programs(
         req.size
     );
     
-    if let Some(cached_results) = services.cache.get::<SearchResultResponse<Course>>(&cache_key).await? {
+    if let Some(cached_results) = services.cache.get::<SearchResultResponse<CourseSearchResult>>(&cache_key).await? {
         return Ok(HttpResponse::Ok().json(cached_results));
     }
     
     let fields: Vec<&str> = req.fields.iter().map(|s| s.as_str()).collect();
     
     let search_response = services.opensearch
-        .search::<Course>(
+        .search::<CourseSearchResult>(
             "programs",
             &req.query,
             fields,
@@ -64,7 +64,7 @@ pub async fn filter_programs(
         req.size
     );
     
-    if let Some(cached_results) = services.cache.get::<SearchResultResponse<Course>>(&cache_key).await? {
+    if let Some(cached_results) = services.cache.get::<SearchResultResponse<CourseSearchResult>>(&cache_key).await? {
         return Ok(HttpResponse::Ok().json(cached_results));
     }
     
@@ -104,7 +104,7 @@ pub async fn filter_programs(
     }
     
     let filter_response = services.opensearch
-        .filter::<Course>(
+        .filter::<CourseSearchResult>(
             "programs",
             filters,
             req.from,
@@ -141,7 +141,7 @@ pub async fn advanced_search_programs(
         filter_req.from
     );
     
-    if let Some(cached_results) = services.cache.get::<SearchResultResponse<Course>>(&cache_key).await? {
+    if let Some(cached_results) = services.cache.get::<SearchResultResponse<CourseSearchResult>>(&cache_key).await? {
         return Ok(HttpResponse::Ok().json(cached_results));
     }
     
