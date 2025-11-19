@@ -1,4 +1,4 @@
-use actix_web::web::{self, service};
+use actix_web::web;
 
 use crate::handlers::lessons;
 

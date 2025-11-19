@@ -91,6 +91,7 @@ pub async fn create_module(
         ).await;
     }
     
+    services.opensearch.index_module(&module).await?;
     services.kafka.publish_cache_invalidation("module_created", &module.id).await?;
     services.cache.delete_all("modules:*").await?;
     services.cache.delete_all("programs:*").await?;
@@ -156,6 +157,10 @@ pub async fn update_module(
         }
     }
     
+    if let Some(updated_module) = updated_modules.get(0) {
+        services.opensearch.index_module(updated_module).await?;
+    }
+
     services.kafka.publish_cache_invalidation("module_updated", &module_id).await?;
     services.cache.delete_all("modules:*").await?;
     services.cache.delete_all("programs:*").await?;
@@ -179,6 +184,7 @@ pub async fn delete_module(
         .fetch::<Module>()
         .await?;
     
+    services.opensearch.delete_module(&module_id).await?;
     services.kafka.publish_cache_invalidation("module_deleted", &module_id).await?;
     services.cache.delete_all("modules:*").await?;
     services.cache.delete_all("programs:*").await?;

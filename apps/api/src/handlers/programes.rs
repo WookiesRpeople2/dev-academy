@@ -85,7 +85,7 @@ pub async fn create_program(
     }
 
     services.kafka.publish_cache_invalidation("course_created", &course.id).await?;
-    
+    services.opensearch.index_course(&course).await?; 
     services.cache.delete_all("programs:*").await?;
     
     Ok(HttpResponse::Created().json(course))
@@ -170,7 +170,10 @@ pub async fn update_program(
             ).await;
         }
     }
-    
+
+    if let Some(updated_course) = updated_courses.get(0) {
+        services.opensearch.index_course(updated_course).await?;
+    }
     services.kafka.publish_cache_invalidation("course_updated", &course_id).await?;
     services.cache.delete_all("programs:*").await?;
     
@@ -183,6 +186,14 @@ pub async fn delete_program(
     services: web::Data<AppServices>,
 ) -> Result<HttpResponse, ApiError> {
     let course_id = path.into_inner();
+
+    services.neo4j
+        .query_nodes("MATCH (c:Course {id: $course_id}) DETACH DELETE c")
+        .param("course_id", course_id.clone())
+        .fetch::<Course>()
+        .await?;
+
+    services.opensearch.delete_course(&course_id).await?;
     
     services.kafka.publish_cache_invalidation("course_deleted", &course_id).await?;
     

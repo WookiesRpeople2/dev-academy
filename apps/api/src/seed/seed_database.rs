@@ -2,6 +2,7 @@ use api::config::Config;
 use api::models::programe::{Course, Module, Lesson};
 use api::service::neo4j_service::Neo4jService;
 use api::service::kafka_service::KafkaService;
+use api::service::opensearch::OpenSearchService;
 use api::service::redis_cache_service::CacheService;
 use anyhow::Result;
 use api::traits::redis_trait::RedisCache;
@@ -13,6 +14,7 @@ pub async fn seed_database(config: &Config) -> Result<()> {
     let neo4j = Neo4jService::new(config.neo4j.clone());
     let kafka = KafkaService::new(config.kafka_producer.clone());
     let cache = CacheService::new(config.redis.clone());
+    let opensearch = OpenSearchService::new(config.opensearch.clone());
 
     println!("Clearing existing cache...");
     cache.delete_all("programs:*").await?;
@@ -36,6 +38,8 @@ pub async fn seed_database(config: &Config) -> Result<()> {
             .publish_cache_invalidation("course_created", &neo_course.id.to_string())
             .await?;
 
+       let _ = opensearch.index_course(&neo_course).await; 
+
         for (_mod_index, module) in course.modules.iter().enumerate() {
             println!("  Creating module: {}", module.title);
             let neo_module: Module = neo4j
@@ -57,6 +61,7 @@ pub async fn seed_database(config: &Config) -> Result<()> {
                 "HAS_MODULE",
                 None,
             ).await?;
+            let _ = opensearch.index_module(module);
 
             for lesson in &module.lessons {
                 let neo_lesson: Lesson = neo4j
@@ -79,6 +84,7 @@ pub async fn seed_database(config: &Config) -> Result<()> {
                     "HAS_LESSON",
                     None,
                 ).await?;
+                let _ = opensearch.index_lesson(lesson);
             }
         }
 

@@ -9,6 +9,11 @@ use rdkafka::producer::FutureProducer;
 use rdkafka::config::ClientConfig;
 use neo4rs::Graph;
 use std::env;
+use opensearch::{
+    OpenSearch, 
+    http::transport::{SingleNodeConnectionPool, TransportBuilder},
+    http::Url,
+};
 
 pub struct Config {
     pub neo4j: Arc<Graph>,
@@ -16,6 +21,7 @@ pub struct Config {
     pub postgres: PgPool,
     pub kafka_producer: Arc<FutureProducer>,
     pub s3_client: Arc<S3Client>,
+    pub opensearch: Arc<OpenSearch>
 }
 
 impl Config {
@@ -32,6 +38,7 @@ impl Config {
         let cred_username = env::var("AWS_ACCESS_KEY_ID").expect("AWS_ACCESS_KEY_ID is missing");
         let cred_pass = env::var("AWS_SECRET_ACCESS_KEY").expect("AWS_SECRET_ACCESS_KEY is missing");
         let endpoint = env::var("S3_ENDPOINT_URL").expect("S3_ENDPOINT_URL is missing");
+        let opensearch_url = env::var("OPENSEARCH_URL").expect("OPENSEARCH_URL missing");
 
         let neo4j = Arc::new(
             Graph::new(&neo4j_url, &neo4j_user, &neo4j_pass)
@@ -71,12 +78,23 @@ impl Config {
 
         let s3_client = Arc::new(S3Client::from_conf(aws_conf));
 
+                let opensearch_parsed_url = Url::parse(&opensearch_url)
+            .expect("Invalid OpenSearch URL");
+        
+        let conn_pool = SingleNodeConnectionPool::new(opensearch_parsed_url);
+        let transport = TransportBuilder::new(conn_pool)
+            .build()
+            .expect("Failed to build OpenSearch transport");
+        
+        let opensearch = Arc::new(OpenSearch::new(transport));
+
         Self {
             neo4j,
             redis,
             s3_client,
             postgres,
             kafka_producer,
+            opensearch
         }
     }
 }
