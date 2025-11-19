@@ -21,7 +21,9 @@ pub struct Config {
     pub postgres: PgPool,
     pub kafka_producer: Arc<FutureProducer>,
     pub s3_client: Arc<S3Client>,
-    pub opensearch: Arc<OpenSearch>
+    pub opensearch: Arc<OpenSearch>,
+    pub jwt_secret: String,
+    pub encryption_key: String,
 }
 
 impl Config {
@@ -39,6 +41,8 @@ impl Config {
         let cred_pass = env::var("AWS_SECRET_ACCESS_KEY").expect("AWS_SECRET_ACCESS_KEY is missing");
         let endpoint = env::var("S3_ENDPOINT_URL").expect("S3_ENDPOINT_URL is missing");
         let opensearch_url = env::var("OPENSEARCH_URL").expect("OPENSEARCH_URL missing");
+        let jwt_secret = env::var("JWT_SECRET").expect("JWT_SECRET is missing");
+        let encryption_key = env::var("ENCRYPTION_KEY").expect("ENCRYPTION_KEY is missing");
 
         let neo4j = Arc::new(
             Graph::new(&neo4j_url, &neo4j_user, &neo4j_pass)
@@ -94,7 +98,9 @@ impl Config {
             s3_client,
             postgres,
             kafka_producer,
-            opensearch
+            opensearch,
+            jwt_secret,
+            encryption_key,
         }
     }
 }

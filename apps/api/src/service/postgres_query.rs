@@ -1,5 +1,3 @@
-use serde::Serialize;
-use serde_json::json;
 use sqlx::PgPool;
 
 use crate::{error::ApiError, traits::pg_model_trait::PgModel};
@@ -7,34 +5,34 @@ use crate::{error::ApiError, traits::pg_model_trait::PgModel};
 pub struct PgQuery<'a> {
     pub pool: &'a PgPool,
     pub sql: String,
-    pub binds: Vec<sqlx::types::Json<serde_json::Value>>,
+    pub binds: Vec<String>,
 }
 
 pub struct PgInsert<'a> {
     pub pool: &'a PgPool,
     pub table: String,
     pub columns: Vec<String>,
-    pub values: Vec<serde_json::Value>,
+    pub values: Vec<String>,
     pub returning: Option<String>,
 }
 
 pub struct PgUpdate<'a> {
     pub pool: &'a PgPool,
     pub table: String,
-    pub sets: Vec<(String, serde_json::Value)>,
-    pub wheres: Vec<(String, serde_json::Value)>,
+    pub sets: Vec<(String, String)>,
+    pub wheres: Vec<(String, String)>,
     pub returning: Option<String>,
 }
 
 pub struct PgDelete<'a> {
     pub pool: &'a PgPool,
     pub table: String,
-    pub wheres: Vec<(String, serde_json::Value)>,
+    pub wheres: Vec<(String, String)>,
 }
 
 impl<'a> PgQuery<'a> {
-    pub fn bind(mut self, value: impl serde::Serialize) -> Self {
-        self.binds.push(sqlx::types::Json(serde_json::json!(value)));
+    pub fn bind(mut self, value: impl ToString) -> Self {
+        self.binds.push(value.to_string());
         self
     }
 
@@ -45,7 +43,7 @@ impl<'a> PgQuery<'a> {
         let mut query = sqlx::query_as::<_, T>(&self.sql);
 
         for b in self.binds {
-            query = query.bind(b.0);
+            query = query.bind(b);
         }
 
         Ok(query.fetch_all(self.pool).await?)
@@ -58,7 +56,7 @@ impl<'a> PgQuery<'a> {
         let mut query = sqlx::query_as::<_, T>(&self.sql);
 
         for b in self.binds {
-            query = query.bind(b.0);
+            query = query.bind(b);
         }
 
         Ok(query.fetch_one(self.pool).await?)
@@ -71,7 +69,7 @@ impl<'a> PgQuery<'a> {
         let mut query = sqlx::query_as::<_, T>(&self.sql);
 
         for b in self.binds {
-            query = query.bind(b.0);
+            query = query.bind(b);
         }
 
         Ok(query.fetch_optional(self.pool).await?)
@@ -79,9 +77,9 @@ impl<'a> PgQuery<'a> {
 }
 
 impl<'a> PgInsert<'a> {
-    pub fn value(mut self, column: &str, val: impl Serialize) -> Self {
+    pub fn value(mut self, column: &str, val: impl ToString) -> Self {
         self.columns.push(column.to_string());
-        self.values.push(json!(val));
+        self.values.push(val.to_string());
         self
     }
 
@@ -126,13 +124,13 @@ impl<'a> PgInsert<'a> {
 }
 
 impl<'a> PgUpdate<'a> {
-    pub fn set(mut self, column: &str, value: impl Serialize) -> Self {
-        self.sets.push((column.to_string(), json!(value)));
+    pub fn set(mut self, column: &str, value: impl ToString) -> Self {
+        self.sets.push((column.to_string(), value.to_string()));
         self
     }
 
-    pub fn where_eq(mut self, column: &str, value: impl Serialize) -> Self {
-        self.wheres.push((column.to_string(), json!(value)));
+    pub fn where_eq(mut self, column: &str, value: impl ToString) -> Self {
+        self.wheres.push((column.to_string(), value.to_string()));
         self
     }
 
@@ -193,8 +191,8 @@ impl<'a> PgUpdate<'a> {
 }
 
 impl<'a> PgDelete<'a> {
-    pub fn where_eq(mut self, column: &str, value: impl Serialize) -> Self {
-        self.wheres.push((column.to_string(), json!(value)));
+    pub fn where_eq(mut self, column: &str, value: impl ToString) -> Self {
+        self.wheres.push((column.to_string(), value.to_string()));
         self
     }
 
@@ -226,4 +224,3 @@ impl<'a> PgDelete<'a> {
         Ok(())
     }
 }
-

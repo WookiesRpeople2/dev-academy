@@ -7,6 +7,7 @@ pub mod redis_cache_service;
 pub mod kafka_service;
 pub mod s3_service;
 pub mod opensearch;
+pub mod jwt_service;
 
 pub struct AppServices {
     pub cache: redis_cache_service::CacheService,
@@ -15,4 +16,5 @@ pub struct AppServices {
     pub postgress: postgres_service::PostgresService,
     pub s3: s3_service::S3Service,
     pub opensearch: opensearch::OpenSearchService,
+    pub jwt_service: jwt_service::JwtService
 }

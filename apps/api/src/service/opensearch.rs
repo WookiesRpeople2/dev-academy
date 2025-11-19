@@ -257,8 +257,6 @@ impl OpenSearchService {
                     "prerequisites": { "type": "keyword" },
                     "documents": { "type": "keyword" },
                     "total_duration_minutes": { "type": "integer" },
-                    "created_at": { "type": "date" },
-                    "updated_at": { "type": "date" }
                 }
             }
         });

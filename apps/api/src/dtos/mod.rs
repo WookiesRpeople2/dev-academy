@@ -3,4 +3,4 @@ pub mod modules;
 pub mod lessons;
 pub mod events;
 pub mod search;
-
+pub mod auth;
