@@ -27,9 +27,16 @@ pub async fn seed_database(config: &Config) -> Result<()> {
 
         let neo_course: Course = neo4j
             .create_node("Course")
-            .prop("title", course.title.clone())
-            .prop("description", course.description.clone())
-            .prop("status", course.status.clone())
+            .prop("title", course.title)
+            .prop("description", course.description)
+            .prop("cover", course.cover)
+            .prop("status", course.status)
+            .prop("category", course.category)
+            .prop("level", course.level)
+            .prop("rating", course.rating.clone())
+            .prop("instructor", course.instructor)
+            .prop("featured", *course.featured)
+            .prop("documents", course.documents.clone())
             .prop("total_duration_minutes", course.total_duration_minutes)
             .exec()
             .await?;
@@ -44,7 +51,7 @@ pub async fn seed_database(config: &Config) -> Result<()> {
             println!("  Creating module: {}", module.title);
             let neo_module: Module = neo4j
                 .create_node("Module")
-                .prop("title", module.title.clone())
+                .prop("title", module.title)
                 .prop("order", module.order)
                 .prop("module_duration_minutes", module.module_duration_minutes)
                 .exec()
@@ -65,11 +72,12 @@ pub async fn seed_database(config: &Config) -> Result<()> {
             for lesson in &module.lessons {
                 let neo_lesson: Lesson = neo4j
                     .create_node("Lesson")
-                    .prop("title", lesson.title.clone())
+                    .prop("title", lesson.title)
                     .prop("order", lesson.order)
                     .prop("duration_minutes", lesson.duration_minutes)
                     .prop("prerequisites", lesson.prerequisites.clone())
-                    .prop("completed", lesson.completed)
+                    .prop("completed", *lesson.completed)
+                    .prop("video", lesson.video)
                     .exec()
                     .await?;
 

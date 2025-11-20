@@ -1,251 +1,160 @@
+// Clean fixed Programmes.tsx
 import { Search, Clock, Users, Star } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom'; 
+import { Link, useLocation } from 'react-router-dom';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
-import type { Course } from '../App';
 import { ImageWithFallback } from './figma/ImageWithFallback';
+import type { Course } from './course';
 
-interface ProgrammesProps {
-  featured?: boolean;
-}
+export function Programmes() {
+  const location = useLocation();
+  const featured = location.pathname === '/'; // featured only on homepage
 
-export const mockCourses: Course[] = [
-  {
-    id: '1',
-    title: 'Développement Web Full Stack',
-    description: 'Maîtrisez React, Node.js et les bases de données pour devenir développeur full stack.',
-    category: 'Web Development',
-    level: 'Intermédiaire',
-    duration: '12 semaines',
-    students: 1245,
-    rating: 4.8,
-    image: 'https://images.unsplash.com/photo-1657812159077-90649115008c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx3ZWIlMjBkZXZlbG9wbWVudCUyMGRlc2lnbnxlbnwxfHx8fDE3NjMzNzI4NTh8MA&ixlib=rb-4.1.0&q=80&w=1080',
-    instructor: 'Marie Dubois',
-    modules: [
-      {
-        id: 'm1',
-        title: 'Introduction à React',
-        lessons: [
-          { id: 'l1', title: 'Qu\'est-ce que React?', duration: '15 min', type: 'video' },
-          { id: 'l2', title: 'Composants et Props', duration: '20 min', type: 'video' },
-          { id: 'l3', title: 'Quiz: Bases de React', duration: '10 min', type: 'quiz' },
-        ]
-      },
-      {
-        id: 'm2',
-        title: 'State et Hooks',
-        lessons: [
-          { id: 'l4', title: 'useState Hook', duration: '25 min', type: 'video' },
-          { id: 'l5', title: 'useEffect Hook', duration: '30 min', type: 'video' },
-        ]
-      },
-      {
-        id: 'm3',
-        title: 'Backend avec Node.js',
-        lessons: [
-          { id: 'l6', title: 'Configuration de Node.js', duration: '20 min', type: 'video' },
-          { id: 'l7', title: 'Express.js', duration: '35 min', type: 'video' },
-        ]
-      }
-    ]
-  },
-  {
-    id: '2',
-    title: 'Data Science avec Python',
-    description: 'Apprenez l\'analyse de données, le machine learning et la visualisation avec Python.',
-    category: 'Data Science',
-    level: 'Débutant',
-    duration: '10 semaines',
-    students: 892,
-    rating: 4.9,
-    image: 'https://images.unsplash.com/photo-1625535069703-a67ae00bd6de?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxkYXRhJTIwc2NpZW5jZSUyMGNvZGV8ZW58MXx8fHwxNzYzMzc3MTEyfDA&ixlib=rb-4.1.0&q=80&w=1080',
-    instructor: 'Thomas Martin',
-    modules: [
-      {
-        id: 'm1',
-        title: 'Fondamentaux Python',
-        lessons: [
-          { id: 'l1', title: 'Variables et Types', duration: '18 min', type: 'video' },
-          { id: 'l2', title: 'Structures de données', duration: '25 min', type: 'video' },
-        ]
-      },
-      {
-        id: 'm2',
-        title: 'NumPy et Pandas',
-        lessons: [
-          { id: 'l3', title: 'Introduction à NumPy', duration: '22 min', type: 'video' },
-          { id: 'l4', title: 'DataFrames avec Pandas', duration: '30 min', type: 'video' },
-        ]
-      }
-    ]
-  },
-  {
-    id: '3',
-    title: 'Développement Mobile avec React Native',
-    description: 'Créez des applications mobiles natives pour iOS et Android avec React Native.',
-    category: 'Mobile Development',
-    level: 'Intermédiaire',
-    duration: '8 semaines',
-    students: 674,
-    rating: 4.7,
-    image: 'https://images.unsplash.com/photo-1633250391894-397930e3f5f2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb2JpbGUlMjBhcHAlMjBkZXZlbG9wbWVudHxlbnwxfHx8fDE3NjMyOTQ4Njh8MA&ixlib=rb-4.1.0&q=80&w=1080',
-    instructor: 'Sophie Bernard',
-    modules: [
-      {
-        id: 'm1',
-        title: 'Configuration et premiers pas',
-        lessons: [
-          { id: 'l1', title: 'Installation de React Native', duration: '15 min', type: 'video' },
-          { id: 'l2', title: 'Votre première app', duration: '20 min', type: 'video' },
-        ]
-      }
-    ]
-  },
-  {
-    id: '4',
-    title: 'Architecture Cloud et DevOps',
-    description: 'Maîtrisez AWS, Docker, Kubernetes et les pratiques DevOps modernes.',
-    category: 'Cloud & DevOps',
-    level: 'Avancé',
-    duration: '14 semaines',
-    students: 523,
-    rating: 4.9,
-    image: 'https://images.unsplash.com/photo-1667984390553-7f439e6ae401?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjbG91ZCUyMGNvbXB1dGluZyUyMHRlY2hub2xvZ3l8ZW58MXx8fHwxNzYzMjk2NDY5fDA&ixlib=rb-4.1.0&q=80&w=1080',
-    instructor: 'Luc Petit',
-    modules: [
-      {
-        id: 'm1',
-        title: 'Introduction au Cloud',
-        lessons: [
-          { id: 'l1', title: 'Concepts du Cloud Computing', duration: '25 min', type: 'video' },
-          { id: 'l2', title: 'Services AWS', duration: '30 min', type: 'video' },
-        ]
-      }
-    ]
-  },
-  {
-    id: '5',
-    title: 'Sécurité et Ethical Hacking',
-    description: 'Apprenez les techniques de sécurité informatique et de tests de pénétration.',
-    category: 'Cybersecurity',
-    level: 'Avancé',
-    duration: '16 semaines',
-    students: 438,
-    rating: 4.8,
-    image: 'https://images.unsplash.com/photo-1691435828932-911a7801adfb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjeWJlcnNlY3VyaXR5JTIwbmV0d29ya3xlbnwxfHx8fDE3NjMzNzA0MDZ8MA&ixlib=rb-4.1.0&q=80&w=1080',
-    instructor: 'Pierre Rousseau',
-    modules: [
-      {
-        id: 'm1',
-        title: 'Fondamentaux de la sécurité',
-        lessons: [
-          { id: 'l1', title: 'Introduction à la cybersécurité', duration: '20 min', type: 'video' },
-          { id: 'l2', title: 'Vulnérabilités communes', duration: '28 min', type: 'video' },
-        ]
-      }
-    ]
-  },
-  {
-    id: '6',
-    title: 'JavaScript Moderne et TypeScript',
-    description: 'Maîtrisez ES6+, TypeScript et les patterns avancés de JavaScript.',
-    category: 'Web Development',
-    level: 'Intermédiaire',
-    duration: '6 semaines',
-    students: 1532,
-    rating: 4.7,
-    image: 'https://images.unsplash.com/photo-1566915896913-549d796d2166?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxkZXZlbG9wZXIlMjBjb2RpbmclMjB3b3Jrc3BhY2V8ZW58MXx8fHwxNzYzMzMzMTkxfDA&ixlib=rb-4.1.0&q=80&w=1080',
-    instructor: 'Claire Laurent',
-    modules: [
-      {
-        id: 'm1',
-        title: 'JavaScript ES6+',
-        lessons: [
-          { id: 'l1', title: 'Arrow Functions', duration: '12 min', type: 'video' },
-          { id: 'l2', title: 'Promises et Async/Await', duration: '25 min', type: 'video' },
-        ]
-      }
-    ]
-  }
-];
-
-export function Programmes({ featured = false }: ProgrammesProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Tous');
-  const location = useLocation();
   const [courses, setCourses] = useState<Course[]>([]);
+  const [searchResults, setSearchResults] = useState<Course[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const API_BASE = (import.meta.env.VITE_API_URL ?? 'http://localhost:9090/api');
+  const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:9090/api';
+
+  const derivedCategories = Array.from(
+    new Set((searchResults ?? courses).map((c) => c.category).filter(Boolean))
+  );
+  const categories = ['Tous', ...derivedCategories] as string[];
 
   useEffect(() => {
     let active = true;
     setLoading(true);
     setError(null);
+
     fetch(`${API_BASE}/programs`)
       .then(async (res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
       })
       .then((data) => {
+        if (!active) return;
         const list = Array.isArray(data?.programs) ? data.programs : [];
+
         const adapted: Course[] = list.map((c: any) => ({
           id: String(c.id ?? ''),
           title: String(c.title ?? ''),
           description: String(c.description ?? ''),
-          category: 'Web Development',
-          level: c.status === 'active' ? 'Intermédiaire' : 'Débutant',
+          category: String(c.category ?? 'Autre'),
+          level: String(c.level ?? 'Débutant'),
           duration: `${Number(c.total_duration_minutes ?? 0)} min`,
-          students: 0,
-          rating: 4.8,
-          image: 'https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?auto=format&q=80&w=1080',
-          instructor: 'DevAcademy',
-          modules: Array.isArray(c.modules) ? c.modules.map((m: any) => ({
-            id: String(m.id ?? ''),
-            title: String(m.title ?? ''),
-            lessons: Array.isArray(m.lessons) ? m.lessons.map((l: any) => ({
-              id: String(l.id ?? ''),
-              title: String(l.title ?? ''),
-              duration: `${Number(l.duration_minutes ?? 0)} min`,
-              type: 'video',
-              completed: Boolean(l.completed ?? false),
-            })) : [],
-          })) : [],
+          students: Number(c.students ?? 0),
+          rating: Number(c.rating ?? 4.8),
+          image: c.cover ? `http://localhost:4566/${c.cover}` : 'https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?auto=format&q=80&w=1080',
+          instructor: String(c.instructor ?? 'DevAcademy'),
+          modules: Array.isArray(c.modules)
+            ? c.modules.map((m: any) => ({
+              id: String(m.id ?? ''),
+              title: String(m.title ?? ''),
+              lessons: Array.isArray(m.lessons)
+                ? m.lessons.map((l: any) => ({
+                  id: String(l.id ?? ''),
+                  title: String(l.title ?? ''),
+                  duration: `${Number(l.duration_minutes ?? 0)} min`,
+                  type: String(l.type ?? 'video'),
+                  completed: Boolean(l.completed ?? false),
+                }))
+                : [],
+            }))
+            : [],
         }));
-        if (active) setCourses(adapted);
+
+        setCourses(adapted);
       })
-      .catch((e) => {
-        if (active) setError(String(e.message || e));
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-    return () => { active = false; };
+      .catch((e) => active && setError(String(e.message || e)))
+      .finally(() => active && setLoading(false));
+
+    return () => {
+      active = false;
+    };
   }, [API_BASE]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const cat = params.get('cat');
-    const categories = ['Tous', 'Web Development', 'Data Science', 'Mobile Development', 'Cloud & DevOps', 'Cybersecurity'];
-    if (cat && categories.includes(cat)) {
-      setSelectedCategory(cat);
+    if (cat && categories.includes(cat)) setSelectedCategory(cat);
+  }, [location.search, categories]);
+
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults(null);
+      return;
     }
-  }, [location.search]);
 
-  const categories = ['Tous', 'Web Development', 'Data Science', 'Mobile Development', 'Cloud & DevOps', 'Cybersecurity'];
+    let active = true;
+    const controller = new AbortController();
 
-  const sourceCourses = courses.length ? courses : mockCourses;
-  const filteredCourses = sourceCourses.filter(course => {
-    const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         course.description.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'Tous' || course.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
+    const runSearch = async () => {
+      try {
+        setLoading(true);
+        setError(null);
 
-  const displayCourses = featured ? filteredCourses.slice(0, 3) : filteredCourses;
+        const res = await fetch(`${API_BASE}/programs/search`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          signal: controller.signal,
+          body: JSON.stringify({
+            query: searchQuery,
+            fields: ['title', 'description', 'category'],
+            from: 0,
+            size: 50,
+          }),
+        });
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        if (!active) return;
+
+        const adapted: Course[] = Array.isArray(data?.results)
+          ? data.results.map((r: any) => ({
+            id: String(r.id ?? ''),
+            title: String(r.title ?? ''),
+            description: String(r.description ?? ''),
+            category: String(r.category ?? 'Autre'),
+            level: String(r.level ?? 'Débutant'),
+            duration: `${Number(r.total_duration_minutes ?? 0)} min`,
+            students: Number(r.students ?? 0),
+            rating: Number(r.rating ?? 4.8),
+            image: r.cover ? `http://localhost:4566/${r.cover}` : 'https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?auto=format&q=80&w=1080',
+            instructor: String(r.instructor ?? 'DevAcademy'),
+            modules: Array.isArray(r.modules) ? r.modules : [],
+          }))
+          : [];
+
+        setSearchResults(adapted);
+      } catch (err: any) {
+        if (active) setError(err.message);
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+
+    runSearch();
+
+    return () => {
+      active = false;
+      controller.abort();
+    };
+  }, [searchQuery, API_BASE]);
+
+  const baseCourses = courses.length ? courses : [];
+  const afterSearch = searchResults ?? baseCourses;
+
+  const filteredByCategory =
+    selectedCategory === 'Tous'
+      ? afterSearch
+      : afterSearch.filter((c) => c.category === selectedCategory);
+
+  const displayCourses = featured ? filteredByCategory.slice(0, 3) : filteredByCategory;
 
   return (
     <div className="bg-zinc-950 py-16">
@@ -255,10 +164,9 @@ export function Programmes({ featured = false }: ProgrammesProps) {
             {featured ? 'Cours Populaires' : 'Tous nos Programmes'}
           </h2>
           <p className="text-zinc-400 max-w-2xl">
-            {featured 
+            {featured
               ? 'Découvrez nos cours les plus appréciés par les développeurs'
-              : 'Explorez notre catalogue complet de formations professionnelles'
-            }
+              : 'Explorez notre catalogue complet de formations professionnelles'}
           </p>
           {!featured && (
             <div className="mt-2 text-sm text-zinc-400">
@@ -287,9 +195,10 @@ export function Programmes({ featured = false }: ProgrammesProps) {
                   key={category}
                   onClick={() => setSelectedCategory(category)}
                   variant={selectedCategory === category ? 'default' : 'outline'}
-                  className={selectedCategory === category 
-                    ? 'bg-blue-600 hover:bg-blue-700 text-white border-0'
-                    : 'border-zinc-800 bg-zinc-900/50 text-zinc-300 hover:bg-zinc-800 hover:text-zinc-50'
+                  className={
+                    selectedCategory === category
+                      ? 'bg-blue-600 hover:bg-blue-700 text-white border-0'
+                      : 'border-zinc-800 bg-zinc-900/50 text-zinc-300 hover:bg-zinc-800 hover:text-zinc-50'
                   }
                 >
                   {category}
@@ -330,9 +239,7 @@ export function Programmes({ featured = false }: ProgrammesProps) {
                   {course.title}
                 </h3>
 
-                <p className="mb-4 text-sm text-zinc-400 line-clamp-2">
-                  {course.description}
-                </p>
+                <p className="mb-4 text-sm text-zinc-400 line-clamp-2">{course.description}</p>
 
                 <div className="flex items-center justify-between text-sm text-zinc-500">
                   <div className="flex items-center gap-1">
@@ -362,10 +269,7 @@ export function Programmes({ featured = false }: ProgrammesProps) {
         {featured && (
           <div className="mt-8 text-center">
             <Link to="/programmes">
-              <Button 
-                variant="outline"
-                className="border-zinc-700 bg-zinc-900/50 text-zinc-100 hover:bg-zinc-800 hover:text-zinc-50"
-              >
+              <Button variant="outline" className="border-zinc-700 bg-zinc-900/50 text-zinc-100 hover:bg-zinc-800 hover:text-zinc-50">
                 Voir tous les cours
               </Button>
             </Link>
@@ -375,3 +279,4 @@ export function Programmes({ featured = false }: ProgrammesProps) {
     </div>
   );
 }
+

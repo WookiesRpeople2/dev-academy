@@ -1,14 +1,14 @@
 use actix_web::web;
 use actix_web::{delete, get, post, put, HttpResponse};
-use crate::dtos::programe::{ProgramDetail, UpdateCourseRequest};
-use crate::models::programe::Course;
+use crate::dtos::programe::{ModuleWithLessons, ProgramDetail, UpdateCourseRequest};
+use crate::models::programe::{Course, Lesson, Module};
 use crate::service::AppServices;
 use crate::traits::redis_trait::RedisCache;
 use crate::{dtos::programe::CreateCourseRequest, error::ApiError};
 
 #[get("/programs")]
 pub async fn get_all_programs(services: web::Data<AppServices>)->Result<HttpResponse, ApiError> {
-    if let Some(cached_programs) = services.cache.get::<Course>("programs:all").await? {
+    if let Some(cached_programs) = services.cache.get::<Vec<Course>>("programs:all").await? {
         return Ok(HttpResponse::Ok().json(serde_json::json!({
             "programs": cached_programs,
             "source": "cache"
@@ -45,15 +45,50 @@ pub async fn get_program_by_id(
         })));
     }
     
-    let program: Vec<ProgramDetail> = services.neo4j.query_nodes("MATCH (c:Course {id: $course_id}) 
-        OPTIONAL MATCH (c)-[:HAS_MODULE]->(m:Module) 
-        OPTIONAL MATCH (m)-[:HAS_LESSON]->(l:Lesson) 
-        RETURN c, 
-        collect(DISTINCT m) as modules, collect(DISTINCT l) as lessons"
-        )
-        .param("course_id", course_id.clone())
-        .fetch::<ProgramDetail>()
-        .await?;
+    let course_vec: Vec<Course> = services.neo4j.query_nodes(
+        "MATCH (c:Course {id: $course_id})
+        RETURN c"
+    )
+    .param("course_id", course_id.clone())
+    .fetch_key("c")
+    .fetch::<Course>()
+    .await?;
+
+    
+    let course = match course_vec.into_iter().next() {
+        Some(c) => c,
+        None => return Err(ApiError::NotFound(format!("Course {} not found", course_id))),
+    };
+
+    let modules: Vec<Module> = services.neo4j.query_nodes(
+        "MATCH (c:Course {id: $course_id})-[:HAS_MODULE]->(m:Module)
+        RETURN m"
+    )
+    .param("course_id", course_id.clone())
+    .fetch_key("m")
+    .fetch::<Module>()
+    .await?;
+
+    let lessons: Vec<Lesson> = services.neo4j.query_nodes(
+        "MATCH (c:Course {id: $course_id})-[:HAS_MODULE]->(m:Module)-[:HAS_LESSON]->(l:Lesson)
+        RETURN l"
+    )
+    .param("course_id", course_id.clone())
+    .fetch_key("l")
+    .fetch::<Lesson>()
+    .await?;
+
+    let modules_with_lessons: Vec<ModuleWithLessons> = modules.into_iter()
+        .map(|m| ModuleWithLessons {
+            module: m,
+            lessons: lessons.clone(),
+        })
+        .collect();
+
+    let program = ProgramDetail {
+        course,
+        modules: modules_with_lessons,
+    };
 
     services.cache.set(&key, &program, 300).await?;
     

@@ -196,7 +196,7 @@ pub async fn get_current_user(
         .postgress
         .query(
             r#"
-            SELECT id
+            SELECT *
             FROM users 
             WHERE email = $1
             "#,
@@ -213,7 +213,7 @@ pub async fn get_current_user(
         .postgress
         .query(
             r#"
-            SELECT id
+            SELECT *
             FROM passkeys 
             WHERE email = $1
             "#,

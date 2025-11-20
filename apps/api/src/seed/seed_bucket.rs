@@ -66,7 +66,7 @@ pub async fn seed_bucket(config: &Config) -> Result<()> {
     for course in &courses {
         for module in &course.modules {
             for lesson in &module.lessons {
-                let raw_video_path = lesson.video.as_str();
+                let raw_video_path = lesson.video;
                 let key = strip_prefix(raw_video_path, "videos/");
 
                 println!(" → Video: {}", raw_video_path);

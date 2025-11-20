@@ -8,7 +8,7 @@ use chrono::{TimeDelta, Utc};
 use jsonwebtoken::{encode, decode, Algorithm, DecodingKey, EncodingKey, Header, Validation};
 use pbkdf2::pbkdf2_hmac;
 use sha2::Sha256;
-use crate::{dtos::auth::Claims, error::ApiError, models::auth::User};
+use crate::{dtos::auth::Claims, error::ApiError};
 
 
 

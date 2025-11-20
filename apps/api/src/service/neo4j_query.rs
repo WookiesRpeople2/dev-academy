@@ -1,6 +1,6 @@
 use std::sync::Arc;
 use std::collections::HashMap;
-use neo4rs::{query, BoltType, Graph, Node};
+use neo4rs::{query, BoltType, Graph, Node, Row};
 use uuid::Uuid;
 use crate::{error::ApiError, traits::from_node::FromNode};
 
@@ -57,6 +57,25 @@ impl Neo4jQuery<'_> {
                 .get(key)
                 .map_err(|_| ApiError::Internal(format!("Could not find key {}", key)))?;
             out.push(T::from_node(&node)?);
+        }
+
+        Ok(out)
+    }
+
+    pub async fn fetch_all<T>(self) -> Result<Vec<T>, ApiError> 
+    where
+        T: TryFrom<Row, Error = ApiError>,
+    {
+        let mut q = query(&self.cypher);
+        for (k, v) in self.params {
+            q = q.param(&k, v);
+        }
+
+        let mut result = self.graph.execute(q).await?;
+        let mut out = Vec::new();
+
+        while let Some(row) = result.next().await? {
+            out.push(T::try_from(row)?);
         }
 
         Ok(out)
@@ -155,4 +174,3 @@ impl<'a> Neo4jDelete<'a> {
         Ok(())
     }
 }
-
