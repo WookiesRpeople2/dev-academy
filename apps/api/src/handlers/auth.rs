@@ -2,11 +2,9 @@ use std::num::NonZeroU32;
 use pbkdf2::pbkdf2_hmac;
 use sha2::Sha256;
 use subtle::ConstantTimeEq;
-use actix_web::{web, HttpResponse, post, cookie::Cookie, cookie::SameSite};
+use actix_web::{cookie::{Cookie, SameSite}, get, post, web, HttpMessage, HttpRequest, HttpResponse};
 use aes_gcm::aead::{rand_core::RngCore, OsRng};
-
-use crate::{dtos::auth::{AuthResponse, LoginPasswordRequest, SignupRequest}, error::ApiError, models::auth::User, service::{jwt_service::{ITER, KEY_LEN, SALT_LEN}, AppServices}};
-
+use crate::{dtos::auth::{AuthResponse, Claims, LoginPasskeyRequest, LoginPasswordRequest, RegisterPasskeyRequest, SignupRequest}, error::ApiError, models::auth::{Passkey, User}, service::{jwt_service::{ITER, KEY_LEN, SALT_LEN}, AppServices}};
 
 
 pub fn hash_password(password: &[u8]) -> (Vec<u8>, Vec<u8>) {
@@ -30,7 +28,7 @@ pub fn verify_password(password: &[u8], salt: &[u8], expected_hash: &[u8]) -> bo
     computed.ct_eq(expected_hash).into()
 }
 
-#[post("/auth/signup/password")]
+#[post("/signup/password")]
 pub async fn signup(
     req: web::Json<SignupRequest>,
     services: web::Data<AppServices>,
@@ -65,7 +63,7 @@ pub async fn signup(
         .fetch_one()
         .await?;
 
-    let token = services.jwt_service.generate_jwt(&user)?;
+    let token = services.jwt_service.generate_jwt(&user.email)?;
     let encrypted_token = services.jwt_service.encrypt_token(&token)?;
 
     let cookie = Cookie::build("auth_token", encrypted_token.clone())
@@ -84,7 +82,7 @@ pub async fn signup(
     }))
 }
 
-#[post("/auth/login/password")]
+#[post("/login/password")]
 pub async fn login_password(
     req: web::Json<LoginPasswordRequest>,
     services: web::Data<AppServices>,
@@ -108,7 +106,7 @@ pub async fn login_password(
         return Err(ApiError::Internal("Invalid credentials".into()));
     }
 
-    let token = services.jwt_service.generate_jwt(user)?;
+    let token = services.jwt_service.generate_jwt(&user.email)?;
     let encrypted_token = services.jwt_service.encrypt_token(&token)?;
 
     let cookie = Cookie::build("auth_token", encrypted_token.clone())
@@ -125,4 +123,107 @@ pub async fn login_password(
         username: user.username.clone(),
         token: encrypted_token.clone(),
     }))
+}
+
+#[post("/passkey/register")]
+pub async fn register_passkey(
+    req: web::Json<RegisterPasskeyRequest>,
+    services: web::Data<AppServices>,
+) -> Result<HttpResponse, ApiError> {
+    let passkeys: Vec<Passkey> = services
+        .postgress
+        .query("SELECT * FROM passkeys WHERE credential_id = $1")
+        .bind(&req.credential_id)
+        .fetch_all()
+        .await?;
+
+    if !passkeys.is_empty() {
+        return Err(ApiError::Internal("Passkey already exists".to_string()));
+    }
+
+    let _passkey: Passkey = services
+        .postgress
+        .insert("passkeys")
+        .value("email", req.email.as_str())
+        .value("credential_id", req.credential_id.as_str())
+        .value("public_key", req.public_key.as_str())
+        .value("counter", req.counter)
+        .returning("*")
+        .fetch_one()
+        .await?;
+
+    Ok(HttpResponse::Created().json(serde_json::json!({
+        "message": "Passkey registered successfully"
+    })))
+}
+
+#[post("/login/passkey")]
+pub async fn login_passkey(
+    req: web::Json<LoginPasskeyRequest>,
+    services: web::Data<AppServices>,
+) -> Result<HttpResponse, ApiError> {
+
+    let passkeys: Passkey = services
+        .postgress
+        .query("SELECT * FROM passkeys WHERE credential_id = $1")
+        .bind(&req.credential_id)
+        .fetch_one()
+        .await?;
+
+    let token = services.jwt_service.generate_jwt(&passkeys.email)?;
+    let encrypted_token = services.jwt_service.encrypt_token(&token)?;
+
+    let cookie = Cookie::build("auth_token", encrypted_token.clone())
+        .path("/")
+        .max_age(actix_web::cookie::time::Duration::days(1))
+        .http_only(true)
+        .secure(true)
+        .same_site(SameSite::Strict)
+        .finish();
+
+    Ok(HttpResponse::Ok()
+        .cookie(cookie)
+        .json(serde_json::json!({ "token": encrypted_token })))
+}
+
+#[get("/me")]
+pub async fn get_current_user(
+    req: HttpRequest,
+    services: web::Data<AppServices>,
+) -> Result<HttpResponse, ApiError> {
+    let claims = req.extensions().get::<Claims>().unwrap().clone();
+   let users: Vec<User> = services
+        .postgress
+        .query(
+            r#"
+            SELECT id
+            FROM users 
+            WHERE email = $1
+            "#,
+        )
+        .bind(&claims.email)
+        .fetch_all()
+        .await?;
+
+    if let Some(user) = users.first() {
+        return Ok(HttpResponse::Ok().json(user));
+    }
+
+    let passkey_users: Vec<Passkey> = services
+        .postgress
+        .query(
+            r#"
+            SELECT id
+            FROM passkeys 
+            WHERE email = $1
+            "#,
+        )
+        .bind(&claims.email)
+        .fetch_all()
+        .await?;
+
+    let user = passkey_users.first()
+        .ok_or_else(|| ApiError::NotFound("User not found".to_string()))?;
+
+    Ok(HttpResponse::Ok().json(user))
 }

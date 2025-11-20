@@ -1,4 +1,4 @@
-use chrono::{NaiveDateTime, Utc};
+use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 use sqlx::prelude::FromRow;
 use sqlx::types::Uuid;
@@ -17,26 +17,10 @@ pub struct User {
 
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
 pub struct Passkey {
-    pub id: String,
-    pub user_id: String,
+    pub id: Uuid,
+    pub email: String,
     pub credential_id: String,
     pub public_key: String,
-    pub counter: i64,
+    pub counter: i32,
     pub created_at: NaiveDateTime,
-}
-
-impl User {
-    pub fn new() -> Self {
-        let now = Utc::now().naive_utc();
-        Self {
-            id: Uuid::new_v4(),
-            email: String::new(),
-            username: String::new(),
-            full_name: String::new(),
-            password_hash: Some(String::new()),
-            password_salt: Some(String::new()),
-            created_at: now,
-            updated_at: now,
-        }
-    }
 }

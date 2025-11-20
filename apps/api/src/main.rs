@@ -1,5 +1,5 @@
 use std::io;
-use actix_web::{web, App, HttpServer};
+use actix_web::{http, web, App, HttpServer};
 use config::Config;
 
 use crate::service::{jwt_service::JwtService, kafka_service::KafkaService, neo4j_service::Neo4jService, opensearch::OpenSearchService, postgres_service::PostgresService, redis_cache_service::CacheService, s3_service::S3Service, AppServices};
@@ -31,7 +31,15 @@ async fn main() -> io::Result<()> {
     
 
     HttpServer::new(move || {
+        let cors = actix_cors::Cors::default()
+            .allowed_origin("http://localhost:5173")
+            .allowed_methods(vec!["GET", "POST", "PUT", "DELETE", "OPTIONS"])
+            .allowed_headers(vec![http::header::AUTHORIZATION, http::header::CONTENT_TYPE])
+            .supports_credentials()
+            .max_age(3600);
+        
         App::new()
+        .wrap(cors)
         .app_data(app_state.clone())
         .app_data(app_services.clone())
         .service(

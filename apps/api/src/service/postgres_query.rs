@@ -2,6 +2,12 @@ use sqlx::PgPool;
 
 use crate::{error::ApiError, traits::pg_model_trait::PgModel};
 
+pub enum PgValue {
+    Str(String),
+    Int(i64),
+}
+
+
 pub struct PgQuery<'a> {
     pub pool: &'a PgPool,
     pub sql: String,
@@ -12,7 +18,7 @@ pub struct PgInsert<'a> {
     pub pool: &'a PgPool,
     pub table: String,
     pub columns: Vec<String>,
-    pub values: Vec<String>,
+    pub values: Vec<PgValue>,
     pub returning: Option<String>,
 }
 
@@ -77,12 +83,11 @@ impl<'a> PgQuery<'a> {
 }
 
 impl<'a> PgInsert<'a> {
-    pub fn value(mut self, column: &str, val: impl ToString) -> Self {
+    pub fn value(mut self, column: &str, val: impl Into<PgValue>) -> Self {
         self.columns.push(column.to_string());
-        self.values.push(val.to_string());
+        self.values.push(val.into());
         self
-    }
-
+    }    
     pub fn returning(mut self, expr: &str) -> Self {
         self.returning = Some(expr.to_string());
         self
@@ -116,7 +121,10 @@ impl<'a> PgInsert<'a> {
         let mut query = sqlx::query_as::<_, T>(&sql);
 
         for v in self.values {
-            query = query.bind(v);
+            match v {
+                PgValue::Str(s) => query = query.bind(s),
+                PgValue::Int(i) => query = query.bind(i),
+            }
         }
 
         Ok(query.fetch_one(self.pool).await?)
@@ -224,3 +232,20 @@ impl<'a> PgDelete<'a> {
         Ok(())
     }
 }
+
+impl From<String> for PgValue {
+    fn from(v: String) -> Self { PgValue::Str(v) }
+}
+
+impl From<&str> for PgValue {
+    fn from(v: &str) -> Self { PgValue::Str(v.to_string()) }
+}
+
+impl From<i64> for PgValue {
+    fn from(v: i64) -> Self { PgValue::Int(v) }
+}
+
+impl From<u64> for PgValue {
+    fn from(v: u64) -> Self { PgValue::Int(v as i64) }
+}
+

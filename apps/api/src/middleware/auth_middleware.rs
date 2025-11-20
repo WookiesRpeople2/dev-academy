@@ -55,26 +55,19 @@ where
                 .ok_or_else(|| HttpResponse::InternalServerError().finish());
             let jwt_service = &services.unwrap().jwt_service;
 
+            let token_cookie = req
+                .cookie("auth_token")
+                .ok_or_else(|| actix_web::error::ErrorUnauthorized("Missing auth-token cookie"))?;
 
-            let auth_header = req
-            .headers()
-            .get("Authorization")
-            .and_then(|v| v.to_str().ok())
-            .ok_or_else(|| actix_web::error::ErrorUnauthorized("Missing acsess token"))?;
+            let token = token_cookie.value();
 
-        if !auth_header.starts_with("Bearer ") {
-            return Err(actix_web::error::ErrorUnauthorized("Invalid Authorization header"))?;}
-
-        let token = auth_header
-            .trim_start_matches("Bearer ")
-            .trim();
             let decrypted_token = jwt_service
                 .decrypt_token(token)
                 .map_err(|_| actix_web::error::ErrorUnauthorized("Invalid token"))?;
 
             let claims = jwt_service
                 .verify_jwt(&decrypted_token)
-                .map_err(|_|  actix_web::error::ErrorUnauthorized("Invalid token"))?;
+                .map_err(|_| actix_web::error::ErrorUnauthorized("Invalid token"))?;
 
             req.extensions_mut().insert(claims);
 

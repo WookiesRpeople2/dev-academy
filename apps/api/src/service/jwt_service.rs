@@ -73,16 +73,14 @@ impl JwtService {
         String::from_utf8(plaintext).map_err(|_| ApiError::Internal("Invalid UTF-8".into()))
     }
 
-    pub fn generate_jwt(&self, user: &User) -> Result<String, ApiError> {
+    pub fn generate_jwt(&self, email: &str) -> Result<String, ApiError> {
         let expiration = Utc::now()
             .checked_add_signed(TimeDelta::hours(24))
             .ok_or_else(|| ApiError::Internal("Failed to calculate expiration".to_string()))?
             .timestamp();
 
         let claims = Claims {
-            sub: user.id.to_string(),
-            email: user.email.clone(),
-            username: user.username.clone(),
+            email: email.to_string(),
             exp: expiration,
             iat: Utc::now().timestamp(),
         };
