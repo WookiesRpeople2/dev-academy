@@ -10,13 +10,14 @@ import { Team } from "./pages/company/Team";
 import { Careers } from "./pages/company/Carrers";
 import { Blog } from "./pages/company/Blog";
 import { Partners } from "./pages/company/Partners";
-import { Contact} from "lucide-react";
+import { Contact } from "lucide-react";
 import { Course } from "./components/course";
 import { HomePage } from "./pages/home/home";
 import { Programmes } from "./components/Programmes";
 import { Inscription } from "./components/Inscription";
 import { Connexion } from "./pages/auth/Connexion";
 import { Navigation } from "./components/Navigation";
+import IDE from "./pages/WebContainer/IDE";
 
 export default function App() {
   return (
@@ -42,7 +43,12 @@ export default function App() {
 
               <Route path="/contact" element={<Contact />} />
 
-              <Route path="*" element={<div className="p-20 text-center">Page non trouvée</div>} />
+              <Route
+                path="*"
+                element={
+                  <div className="p-20 text-center">Page non trouvée</div>
+                }
+              />
 
               <Route path="/faq" element={<FAQ />} />
               <Route path="/cgu" element={<Terms />} />
@@ -52,6 +58,7 @@ export default function App() {
               <Route path="/carrieres" element={<Careers />} />
               <Route path="/blog" element={<Blog />} />
               <Route path="/partenaires" element={<Partners />} />
+              <Route path="/IDE" element={<IDE />} />
             </Routes>
           </main>
           <Footer />
@@ -60,4 +67,3 @@ export default function App() {
     </AuthProvider>
   );
 }
-
